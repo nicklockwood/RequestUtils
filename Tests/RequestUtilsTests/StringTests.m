@@ -35,6 +35,21 @@
 
 #pragma mark Paths
 
+- (void)textURLEncoding
+{
+    NSString *input = @"foo bar";
+    NSString *expected = @"foo%20bar";
+	NSAssert([expected isEqualToString:[input URLEncodedString]], @"URLEncoding test failed");
+}
+
+- (void)textNilURLEncoding
+{
+    NSString *nilString = nil;
+	NSAssert([nilString URLValue] == nil, @"URLEncoding nil test failed");
+}
+
+#pragma mark Paths
+
 - (void)testAppendPath
 {
 	NSString *URLString = @"http://hello";
@@ -70,19 +85,16 @@
 - (void)testSimpleQueryString
 {
 	NSString *query = @"?foo=bar&bar=foo";
-	NSDictionary *result = [NSDictionary dictionaryWithObjectsAndKeys:@"bar", @"foo", @"foo", @"bar", nil];
+	NSDictionary *result = @{@"foo": @"bar", @"bar": @"foo"};
 	NSAssert([[query URLQueryParametersWithOptions:0] isEqual:result], @"URLQueryParameters test failed");
 }
 
 - (void)testArrayQueryString
 {
 	NSString *query = @"?foo=bar&bar=foo&bar=bar";
-	NSDictionary *result1 = [NSDictionary dictionaryWithObjectsAndKeys:
-							 @"bar", @"foo", [NSArray arrayWithObjects:@"foo", @"bar", nil], @"bar", nil];
-	NSDictionary *result2 = [NSDictionary dictionaryWithObjectsAndKeys:@"bar", @"foo", @"bar", @"bar", nil];
-	NSDictionary *result3 = [NSDictionary dictionaryWithObjectsAndKeys:
-							 [NSArray arrayWithObject:@"bar"], @"foo",
-							 [NSArray arrayWithObjects:@"foo", @"bar", nil], @"bar", nil];
+	NSDictionary *result1 = @{@"foo": @"bar", @"bar": @[@"foo", @"bar"]};
+	NSDictionary *result2 = @{@"foo": @"bar", @"bar": @"bar"};
+	NSDictionary *result3 = @{@"foo": @[@"bar"], @"bar": @[@"foo", @"bar"]};
 	NSAssert([[query URLQueryParametersWithOptions:URLQueryOptionUseArrays] isEqual:result1], @"URLQueryParameters test failed");
 	NSAssert([[query URLQueryParametersWithOptions:URLQueryOptionKeepLastValue] isEqual:result2], @"URLQueryParameters test failed");
 	NSAssert([[query URLQueryParametersWithOptions:URLQueryOptionAlwaysUseArrays] isEqual:result3], @"URLQueryParameters test failed");
@@ -91,10 +103,8 @@
 - (void)testArrayQueryString2
 {
 	NSString *query = @"?foo[]=bar&bar[]=foo&bar[]=bar";
-	NSDictionary *result1 = [NSDictionary dictionaryWithObjectsAndKeys:
-							 [NSArray arrayWithObject:@"bar"], @"foo",
-							 [NSArray arrayWithObjects:@"foo", @"bar", nil], @"bar", nil];
-	NSDictionary *result2 = [NSDictionary dictionaryWithObjectsAndKeys:@"bar", @"foo", @"bar", @"bar", nil];
+	NSDictionary *result1 = @{@"foo": @[@"bar"], @"bar": @[@"foo", @"bar"]};
+	NSDictionary *result2 = @{@"foo": @"bar", @"bar": @"bar"};
 	NSAssert([[query URLQueryParametersWithOptions:URLQueryOptionUseArrays] isEqual:result1], @"URLQueryParameters test failed");
 	NSAssert([[query URLQueryParametersWithOptions:URLQueryOptionKeepLastValue] isEqual:result2], @"URLQueryParameters test failed");
 }

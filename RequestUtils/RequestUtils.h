@@ -1,7 +1,7 @@
 //
 //  RequestUtils.h
 //
-//  Version 1.0
+//  Version 1.0.1
 //
 //  Created by Nick Lockwood on 11/01/2012.
 //  Copyright (C) 2012 Charcoal Design
@@ -36,11 +36,11 @@
 typedef enum
 {
     URLQueryOptionDefault = 0,
-	URLQueryOptionKeepLastValue = 1,
-	URLQueryOptionKeepFirstValue = 2,
-	URLQueryOptionUseArrays = 3,
-	URLQueryOptionAlwaysUseArrays = 4,
-	URLQueryOptionUseArraySyntax = 8
+    URLQueryOptionKeepLastValue = 1,
+    URLQueryOptionKeepFirstValue = 2,
+    URLQueryOptionUseArrays = 3,
+    URLQueryOptionAlwaysUseArrays = 4,
+    URLQueryOptionUseArraySyntax = 8
 }
 URLQueryOptions;
 

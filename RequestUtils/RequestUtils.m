@@ -1,7 +1,7 @@
 //
 //  RequestUtils.m
 //
-//  Version 1.0
+//  Version 1.0.1
 //
 //  Created by Nick Lockwood on 11/01/2012.
 //  Copyright (C) 2012 Charcoal Design
@@ -51,7 +51,7 @@ NSString *const URLFragmentComponent = @"fragment";
 - (NSString *)URLEncodedString
 {
     CFStringRef encoded = CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
-                                                                  (__bridge CFStringRef)self,
+                                                                  (__bridge CFStringRef)[self description],
                                                                   NULL,
                                                                   CFSTR("!*'\"();:@&=+$,/?%#[]% "),
                                                                   kCFStringEncodingUTF8);
@@ -60,7 +60,7 @@ NSString *const URLFragmentComponent = @"fragment";
 
 - (NSString *)URLDecodedString:(BOOL)decodePlusAsSpace
 {
-    NSString *string = self;
+    NSString *string = [self description];
     if (decodePlusAsSpace)
     {
         string = [string stringByReplacingOccurrencesOfString:@"+" withString:@" "];
@@ -177,7 +177,7 @@ NSString *const URLFragmentComponent = @"fragment";
     for (NSString *key in parameters)
     {
         NSString *encodedKey = [key URLEncodedString];
-        id value = [parameters objectForKey:key];
+        id value = parameters[key];
         if ([value isKindOfClass:[NSArray class]])
         {
             if (arrayHandling == URLQueryOptionKeepFirstValue && [value count])
@@ -186,7 +186,7 @@ NSString *const URLFragmentComponent = @"fragment";
                 {
                     [result appendString:@"&"];
                 }
-                [result appendFormat:@"%@=%@", encodedKey, [[value objectAtIndex:0] URLEncodedString]];
+                [result appendFormat:@"%@=%@", encodedKey, [value[0] URLEncodedString]];
             }
             else if (arrayHandling == URLQueryOptionKeepLastValue && [value count])
             {
@@ -354,8 +354,8 @@ NSString *const URLFragmentComponent = @"fragment";
     NSDictionary *newParameters = [query URLQueryParametersWithOptions:options];
     for (NSString *key in newParameters)
     {
-        id value = [newParameters objectForKey:key];
-        id oldValue = [parameters objectForKey:key];
+        id value = newParameters[key];
+        id oldValue = parameters[key];
         if ([oldValue isKindOfClass:[NSArray class]])
         {
             if ([value isKindOfClass:[NSArray class]])
@@ -371,7 +371,7 @@ NSString *const URLFragmentComponent = @"fragment";
         {
             if ([value isKindOfClass:[NSArray class]])
             {
-                value = [[NSArray arrayWithObject:oldValue] arrayByAddingObjectsFromArray:value];
+                value = [@[oldValue] arrayByAddingObjectsFromArray:value];
             }
             else if (arrayHandling == URLQueryOptionKeepFirstValue)
             {
@@ -380,21 +380,17 @@ NSString *const URLFragmentComponent = @"fragment";
             else if (arrayHandling == URLQueryOptionUseArrays ||
                      arrayHandling == URLQueryOptionAlwaysUseArrays)
             {
-                value = [NSArray arrayWithObjects:oldValue, value, nil];
+                value = @[oldValue, value];
             }
         }
         else if (arrayHandling == URLQueryOptionAlwaysUseArrays)
         {
-            value = [NSArray arrayWithObject:value];
+            value = @[value];
         }
-        [parameters setObject:value forKey:key];
+        parameters[key] = value;
     }
-    
-    NSRange queryRange = [self rangeOfURLQuery];
-    NSString *prefix = [self substringToIndex:queryRange.location];
-    NSString *suffix = [self substringFromIndex:queryRange.location + queryRange.length];
-    return [prefix stringByAppendingFormat:@"%@%@",
-            [NSString URLQueryWithParameters:parameters options:options], suffix];
+
+    return [self stringByReplacingURLQueryWithQuery:[NSString URLQueryWithParameters:parameters options:options]];
 }
 
 - (NSDictionary *)URLQueryParameters
@@ -413,16 +409,16 @@ NSString *const URLFragmentComponent = @"fragment";
     for (NSString *parameter in parameters)
     {
         NSArray *parts = [parameter componentsSeparatedByString:@"="];
-        NSString *key = [[parts objectAtIndex:0] URLDecodedString:YES];
+        NSString *key = [parts[0] URLDecodedString:YES];
         if ([parts count] > 1)
         {
-            id value = [[parts objectAtIndex:1] URLDecodedString:YES];
+            id value = [parts[1] URLDecodedString:YES];
             BOOL arrayValue = [key hasSuffix:@"[]"];
             if (arrayValue)
             {
                 key = [key substringToIndex:[key length] - 2];
             }
-            id existingValue = [result objectForKey:key];
+            id existingValue = result[key];
             if ([existingValue isKindOfClass:[NSArray class]])
             {
                 value = [existingValue arrayByAddingObject:value];
@@ -435,15 +431,15 @@ NSString *const URLFragmentComponent = @"fragment";
                 }
                 else if (arrayHandling != URLQueryOptionKeepLastValue)
                 {
-                    value = [NSArray arrayWithObjects:existingValue, value, nil];
+                    value = @[existingValue, value];
                 }
             }
             else if ((arrayValue && arrayHandling == URLQueryOptionUseArrays) ||
                      arrayHandling == URLQueryOptionAlwaysUseArrays)
             {
-                value = [NSArray arrayWithObject:value];
+                value = @[value];
             }
-            [result setObject:value forKey:key];
+            result[key] = value;
         }
     }
     return result;
@@ -543,14 +539,22 @@ NSString *const URLFragmentComponent = @"fragment";
     }
     
     //truncate data to match actual output length
-    outputBytes = realloc(outputBytes, outputLength);
-    NSString *result = [[NSString alloc] initWithBytesNoCopy:outputBytes length:outputLength encoding:NSASCIIStringEncoding freeWhenDone:YES];
-    
+    if (outputLength)
+    {
+        outputBytes = realloc(outputBytes, outputLength);
+        NSString *result = [[NSString alloc] initWithBytesNoCopy:outputBytes length:outputLength encoding:NSASCIIStringEncoding freeWhenDone:YES];
+        
 #if !__has_feature(objc_arc)
-    [result autorelease];
+        [result autorelease];
 #endif
-    
-    return (outputLength >= 4)? result: nil;
+        
+        return (outputLength >= 4)? result: nil;
+    }
+    else
+    {
+        free(outputBytes);
+        return nil;
+    }
 }
 
 - (NSString *)base64DecodedString
@@ -626,12 +630,12 @@ NSString *const URLFragmentComponent = @"fragment";
 + (NSURL *)URLWithComponents:(NSDictionary *)components
 {
     NSString *URL = @"";
-    NSString *fragment = [components objectForKey:URLFragmentComponent];
+    NSString *fragment = components[URLFragmentComponent];
     if (fragment)
     {
         URL = [NSString stringWithFormat:@"#%@", fragment];
     }
-    NSString *query = [components objectForKey:URLQueryComponent];
+    NSString *query = components[URLQueryComponent];
     if (query)
     {
         if ([query isKindOfClass:[NSDictionary class]])
@@ -640,37 +644,37 @@ NSString *const URLFragmentComponent = @"fragment";
         }
         URL = [NSString stringWithFormat:@"?%@%@", query, URL];
     }
-    NSString *parameterString = [components objectForKey:URLParameterStringComponent];
+    NSString *parameterString = components[URLParameterStringComponent];
     if (parameterString)
     {
         URL = [NSString stringWithFormat:@";%@%@", parameterString, URL];
     }
-    NSString *path = [components objectForKey:URLPathComponent];
+    NSString *path = components[URLPathComponent];
     if (path)
     {
         URL = [path stringByAppendingString:URL];
     }
-    NSString *port = [components objectForKey:URLPortComponent];
+    NSString *port = components[URLPortComponent];
     if (port)
     {
         URL = [NSString stringWithFormat:@":%@%@", port, URL];
     }
-    NSString *host = [components objectForKey:URLHostComponent];
+    NSString *host = components[URLHostComponent];
     if (host)
     {
         URL = [host stringByAppendingString:URL];
     }
-    NSString *user = [components objectForKey:URLUserComponent];
+    NSString *user = components[URLUserComponent];
     if (user)
     {
-        NSString *password = [components objectForKey:URLPasswordComponent];
+        NSString *password = components[URLPasswordComponent];
         if (password)
         {
             user = [user stringByAppendingFormat:@":%@", password];
         }
         URL = [user stringByAppendingFormat:@"@%@", URL];
     }
-    NSString *scheme = [components objectForKey:URLSchemeComponent];
+    NSString *scheme = components[URLSchemeComponent];
     if (scheme)
     {
         URL = [scheme stringByAppendingFormat:@"://%@", URL];
@@ -681,18 +685,16 @@ NSString *const URLFragmentComponent = @"fragment";
 - (NSDictionary *)components
 {
     NSMutableDictionary *result = [NSMutableDictionary dictionary];
-    for (NSString *key in [NSArray arrayWithObjects:
-                           URLSchemeComponent, URLHostComponent,
+    for (NSString *key in @[URLSchemeComponent, URLHostComponent,
                            URLPortComponent, URLUserComponent,
                            URLPasswordComponent, URLPortComponent,
                            URLPathComponent, URLParameterStringComponent,
-                           URLQueryComponent, URLFragmentComponent,
-                           nil])
+                           URLQueryComponent, URLFragmentComponent])
     {
         id value = [self valueForKey:key];
         if (value)
         {
-            [result setObject:value forKey:key];
+            result[key] = value;
         }
     }
     return result;
@@ -708,7 +710,7 @@ NSString *const URLFragmentComponent = @"fragment";
     
     if (value)
     {
-        [components setObject:value  forKey:component];
+        components[component] = value;
     }
     else
     {
@@ -826,13 +828,13 @@ NSString *const URLFragmentComponent = @"fragment";
     }
     else
     {
-        return [NSArray arrayWithObjects:[self.URL user] ?: @"", [self.URL password] ?: @"", nil];
+        return @[[self.URL user] ?: @"", [self.URL password] ?: @""];
     }
 }
 
 - (NSString *)HTTPBasicAuthUser
 {
-	return [[self HTTPBasicAuthComponents] objectAtIndex:0];
+	return [self HTTPBasicAuthComponents][0];
 }
 
 - (NSString *)HTTPBasicAuthPassword
