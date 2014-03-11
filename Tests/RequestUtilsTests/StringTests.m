@@ -113,13 +113,30 @@
 {
     NSString *query1 = @"?foo=bar";
     NSString *query2 = @"foo=bar";
-    NSString *url1 = @"http://apple.com?";
-    NSString *url2 = @"http://apple.com";
+    NSString *URLString1 = @"http://apple.com?";
+    NSString *URLString2 = @"http://apple.com";
     NSString *result = @"http://apple.com?foo=bar";
-    NSAssert([[url1 stringByAppendingURLQuery:query1] isEqualToString:result], @"URLQueryParameters test failed");
-    NSAssert([[url1 stringByAppendingURLQuery:query2] isEqualToString:result], @"URLQueryParameters test failed");
-    NSAssert([[url2 stringByAppendingURLQuery:query1] isEqualToString:result], @"URLQueryParameters test failed");
-    NSAssert([[url2 stringByAppendingURLQuery:query2] isEqualToString:result], @"URLQueryParameters test failed");
+    NSAssert([[URLString1 stringByAppendingURLQuery:query1] isEqualToString:result], @"URLQueryParameters test failed");
+    NSAssert([[URLString1 stringByAppendingURLQuery:query2] isEqualToString:result], @"URLQueryParameters test failed");
+    NSAssert([[URLString2 stringByAppendingURLQuery:query1] isEqualToString:result], @"URLQueryParameters test failed");
+    NSAssert([[URLString2 stringByAppendingURLQuery:query2] isEqualToString:result], @"URLQueryParameters test failed");
+}
+
+- (void)testMergeQuery
+{
+    NSString *query1 = @"?foo=bar";
+    NSString *query2 = @"foo=bar";
+    NSString *URLString1 = @"http://apple.com?";
+    NSString *URLString2 = @"http://apple.com";
+    NSString *URLString3 = @"http://apple.com?baz=bleem";
+    NSString *result1 = @"http://apple.com?foo=bar";
+    NSString *result2 = @"http://apple.com?baz=bleem&foo=bar";
+    NSAssert([[URLString1 stringByMergingURLQuery:query1] isEqualToString:result1], @"URLQueryParameters test failed");
+    NSAssert([[URLString1 stringByMergingURLQuery:query2] isEqualToString:result1], @"URLQueryParameters test failed");
+    NSAssert([[URLString2 stringByMergingURLQuery:query1] isEqualToString:result1], @"URLQueryParameters test failed");
+    NSAssert([[URLString2 stringByMergingURLQuery:query2] isEqualToString:result1], @"URLQueryParameters test failed");
+    NSAssert([[URLString3 stringByMergingURLQuery:query1] isEqualToString:result2], @"URLQueryParameters test failed");
+    NSAssert([[URLString3 stringByMergingURLQuery:query2] isEqualToString:result2], @"URLQueryParameters test failed");
 }
 
 @end

@@ -299,10 +299,8 @@
 
 - (NSString *)stringByAppendingURLQuery:(NSString *)query
 {
-    //get query
-    query = [query URLQuery];
-    
     //check for empty input
+    query = [query URLQuery];
     if ([query length] == 0)
     {
         return self;
@@ -336,7 +334,7 @@
 {
     URLQueryOptions arrayHandling = (options & 7) ?: URLQueryOptionKeepLastValue;
     
-    //check for nil input
+    //check for empty input
     query = [query URLQuery];
     if ([query length] == 0)
     {
@@ -551,6 +549,10 @@
 {
     NSString *URL = @"";
     NSString *fragment = components[URLFragmentComponent];
+    if ([fragment hasPrefix:@"#"])
+    {
+        fragment = [fragment substringFromIndex:1];
+    }
     if (fragment)
     {
         URL = [NSString stringWithFormat:@"#%@", fragment];
@@ -561,6 +563,10 @@
         if ([query isKindOfClass:[NSDictionary class]])
         {
             query = [NSString URLQueryWithParameters:(NSDictionary *)query];
+        }
+        if ([query hasPrefix:@"?"] || [query hasPrefix:@"&"])
+        {
+            query = [query substringFromIndex:1];
         }
         URL = [NSString stringWithFormat:@"?%@%@", query, URL];
     }
@@ -770,7 +776,11 @@
 - (void)addGETParameters:(NSDictionary *)parameters options:(URLQueryOptions)options
 {
     NSString *query = [NSString URLQueryWithParameters:parameters options:options];
-    query = [[[self.URL absoluteString] URLQuery] ?: @"" stringByMergingURLQuery:query options:options];
+    NSString *existingQuery = [[self.URL absoluteString] URLQuery];
+    if ([existingQuery length])
+    {
+        query = [existingQuery stringByMergingURLQuery:query options:options];
+    }
     self.URL = [self.URL URLWithQuery:query];
 }
 

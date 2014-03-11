@@ -31,6 +31,16 @@
 	NSAssert([[request GETParameters] isEqual:result], @"GETRequest2 test failed");
 }
 
+- (void)testGETRequest3
+{
+    NSURL *URL = [NSURL URLWithString:@"http://example.com?"];
+    NSDictionary *parameters = [@"foo=bar&bar=foo" URLQueryParameters];
+	NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:URL];
+    [request addGETParameters:parameters options:0];
+    NSURL *result = [NSURL URLWithString:@"http://example.com?foo=bar&bar=foo"];
+	NSAssert([[request URL] isEqual:result], @"GETRequest3 test failed");
+}
+
 - (void)testPOSTRequest
 {
     NSURL *URL = [NSURL URLWithString:@"http://example.com"];
