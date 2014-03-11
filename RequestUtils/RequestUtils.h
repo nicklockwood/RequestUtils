@@ -1,7 +1,7 @@
 //
 //  RequestUtils.h
 //
-//  Version 1.0.2 beta
+//  Version 1.0.2
 //
 //  Created by Nick Lockwood on 11/01/2012.
 //  Copyright (C) 2012 Charcoal Design
@@ -33,7 +33,23 @@
 #import <Foundation/Foundation.h>
 
 
-typedef enum
+#ifndef REQUEST_UTILS
+#define REQUEST UTILS
+
+static NSString *const URLSchemeComponent = @"scheme";
+static NSString *const URLHostComponent = @"host";
+static NSString *const URLPortComponent = @"port";
+static NSString *const URLUserComponent = @"user";
+static NSString *const URLPasswordComponent = @"password";
+static NSString *const URLPathComponent = @"path";
+static NSString *const URLParameterStringComponent = @"parameterString";
+static NSString *const URLQueryComponent = @"query";
+static NSString *const URLFragmentComponent = @"fragment";
+
+#endif
+
+
+typedef NS_OPTIONS(NSUInteger, URLQueryOptions)
 {
     URLQueryOptionDefault = 0,
     URLQueryOptionKeepLastValue = 1,
@@ -41,19 +57,7 @@ typedef enum
     URLQueryOptionUseArrays = 3,
     URLQueryOptionAlwaysUseArrays = 4,
     URLQueryOptionUseArraySyntax = 8
-}
-URLQueryOptions;
-
-
-extern NSString *const URLSchemeComponent;
-extern NSString *const URLHostComponent;
-extern NSString *const URLPortComponent;
-extern NSString *const URLUserComponent;
-extern NSString *const URLPasswordComponent;
-extern NSString *const URLPathComponent;
-extern NSString *const URLParameterStringComponent;
-extern NSString *const URLQueryComponent;
-extern NSString *const URLFragmentComponent;
+};
 
 
 @interface NSString (RequestUtils)
@@ -110,7 +114,7 @@ extern NSString *const URLFragmentComponent;
 
 @interface NSURL (RequestUtils)
 
-+ (NSURL *)URLWithComponents:(NSDictionary *)components;
++ (instancetype)URLWithComponents:(NSDictionary *)components;
 - (NSDictionary *)components;
 
 - (NSURL *)URLWithScheme:(NSString *)scheme;
@@ -128,9 +132,9 @@ extern NSString *const URLFragmentComponent;
 
 @interface NSURLRequest (RequestUtils)
 
-+ (id)HTTPRequestWithURL:(NSURL *)URL method:(NSString *)method parameters:(NSDictionary *)parameters;
-+ (id)GETRequestWithURL:(NSURL *)URL parameters:(NSDictionary *)parameters;
-+ (id)POSTRequestWithURL:(NSURL *)URL parameters:(NSDictionary *)parameters;
++ (instancetype)HTTPRequestWithURL:(NSURL *)URL method:(NSString *)method parameters:(NSDictionary *)parameters;
++ (instancetype)GETRequestWithURL:(NSURL *)URL parameters:(NSDictionary *)parameters;
++ (instancetype)POSTRequestWithURL:(NSURL *)URL parameters:(NSDictionary *)parameters;
 
 - (NSDictionary *)GETParameters;
 - (NSDictionary *)POSTParameters;

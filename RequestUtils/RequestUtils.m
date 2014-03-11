@@ -1,7 +1,7 @@
 //
 //  RequestUtils.m
 //
-//  Version 1.0.2 beta
+//  Version 1.0.2
 //
 //  Created by Nick Lockwood on 11/01/2012.
 //  Copyright (C) 2012 Charcoal Design
@@ -33,15 +33,24 @@
 #import "RequestUtils.h"
 
 
-NSString *const URLSchemeComponent = @"scheme";
-NSString *const URLHostComponent = @"host";
-NSString *const URLPortComponent = @"port";
-NSString *const URLUserComponent = @"user";
-NSString *const URLPasswordComponent = @"password";
-NSString *const URLPathComponent = @"path";
-NSString *const URLParameterStringComponent = @"parameterString";
-NSString *const URLQueryComponent = @"query";
-NSString *const URLFragmentComponent = @"fragment";
+#pragma GCC diagnostic ignored "-Wgnu"
+#pragma GCC diagnostic ignored "-Wselector"
+
+
+@implementation NSData (RequestUtils)
+
+- (NSString *)RequestUtils_UTF8String
+{
+    NSString *string = [[NSString alloc] initWithData:self encoding:NSUTF8StringEncoding];
+    
+#if !__has_feature(objc_arc)
+    [string autorelease];
+#endif
+    
+    return string;
+}
+
+@end
 
 
 @implementation NSString (RequestUtils)
@@ -290,7 +299,10 @@ NSString *const URLFragmentComponent = @"fragment";
 
 - (NSString *)stringByAppendingURLQuery:(NSString *)query
 {
-    //check for nil input
+    //get query
+    query = [query URLQuery];
+    
+    //check for empty input
     if ([query length] == 0)
     {
         return self;
@@ -299,21 +311,14 @@ NSString *const URLFragmentComponent = @"fragment";
     NSString *result = self;
     NSString *fragment = [result URLFragment];
     result = [self stringByDeletingURLFragment];
-    NSString *queryString = [result URLQuery];
-    if (queryString)
+    NSString *existingQuery = [result URLQuery];
+    if ([existingQuery length])
     {
-        if ([queryString length])
-        {
-            result = [result stringByAppendingFormat:@"&%@", query];
-        }
-        else
-        {
-            result = [result stringByAppendingString:query];
-        }
+        result = [result stringByAppendingFormat:@"&%@", query];
     }
     else
     {
-        result = [result stringByAppendingFormat:@"%@", query];
+        result = [[result stringByDeletingURLQuery] stringByAppendingFormat:@"?%@", query];
     }
     if ([fragment length])
     {
@@ -345,12 +350,7 @@ NSString *const URLFragmentComponent = @"fragment";
         return [self stringByAppendingURLQuery:query];
     }
     
-    NSMutableDictionary *parameters = [[queryString URLQueryParametersWithOptions:options] mutableCopy];
-    
-#if !__has_feature(objc_arc)
-    [parameters autorelease];
-#endif
-    
+    NSMutableDictionary *parameters = (NSMutableDictionary *)[queryString URLQueryParametersWithOptions:options];
     NSDictionary *newParameters = [query URLQueryParametersWithOptions:options];
     for (NSString *key in newParameters)
     {
@@ -512,7 +512,7 @@ NSString *const URLFragmentComponent = @"fragment";
     
 #endif
 
-    return [data base64EncodedStringWithOptions:0];
+    return [data base64EncodedStringWithOptions:(NSDataBase64EncodingOptions)0];
 }
 
 - (NSString *)base64DecodedString
@@ -530,14 +530,13 @@ NSString *const URLFragmentComponent = @"fragment";
 #endif
         
     {
-        data = [[NSData alloc] initWithBase64EncodedString:self options:0];
+        data = [[NSData alloc] initWithBase64EncodedString:self options:(NSDataBase64DecodingOptions)0];
     }
     
-    NSString *string = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+    NSString *string = [data RequestUtils_UTF8String];
     
 #if !__has_feature(objc_arc)
     [data release];
-    [string autorelease];
 #endif
     
     return string;
@@ -623,12 +622,7 @@ NSString *const URLFragmentComponent = @"fragment";
 
 - (NSURL *)URLWithValue:(NSString *)value forComponent:(NSString *)component
 {
-    NSMutableDictionary *components = [[self components] mutableCopy];
-    
-#if !__has_feature(objc_arc)
-    [components autorelease];
-#endif
-    
+    NSMutableDictionary *components = (NSMutableDictionary *)[self components];
     if (value)
     {
         components[component] = value;
@@ -692,7 +686,7 @@ NSString *const URLFragmentComponent = @"fragment";
 
 @implementation NSURLRequest (RequestUtils)
 
-+ (id)HTTPRequestWithURL:(NSURL *)URL method:(NSString *)method parameters:(NSDictionary *)parameters
++ (instancetype)HTTPRequestWithURL:(NSURL *)URL method:(NSString *)method parameters:(NSDictionary *)parameters
 {
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:URL];
     method = [method uppercaseString];
@@ -714,14 +708,14 @@ NSString *const URLFragmentComponent = @"fragment";
     return request;
 }
 
-+ (id)GETRequestWithURL:(NSURL *)URL parameters:(NSDictionary *)parameters
++ (instancetype)GETRequestWithURL:(NSURL *)URL parameters:(NSDictionary *)parameters
 {
-    return [NSURLRequest HTTPRequestWithURL:URL method:@"GET" parameters:parameters];
+    return [self HTTPRequestWithURL:URL method:@"GET" parameters:parameters];
 }
 
-+ (id)POSTRequestWithURL:(NSURL *)URL parameters:(NSDictionary *)parameters
++ (instancetype)POSTRequestWithURL:(NSURL *)URL parameters:(NSDictionary *)parameters
 {
-    return [NSURLRequest HTTPRequestWithURL:URL method:@"POST" parameters:parameters];
+    return [self HTTPRequestWithURL:URL method:@"POST" parameters:parameters];
 }
 
 - (NSDictionary *)GETParameters
@@ -731,13 +725,7 @@ NSString *const URLFragmentComponent = @"fragment";
 
 - (NSDictionary *)POSTParameters
 {
-    NSString *parameterString = [[NSString alloc] initWithData:self.HTTPBody encoding:NSUTF8StringEncoding];
-    
-#if !__has_feature(objc_arc)
-    [parameterString autorelease];
-#endif
-    
-    return [parameterString URLQueryParameters];
+    return [[self.HTTPBody RequestUtils_UTF8String] URLQueryParameters];
 }
 
 - (NSArray *)HTTPBasicAuthComponents
@@ -805,13 +793,7 @@ NSString *const URLFragmentComponent = @"fragment";
 - (void)addPOSTParameters:(NSDictionary *)parameters options:(URLQueryOptions)options
 {
     NSString *query = [NSString URLQueryWithParameters:parameters options:options];
-    NSString *content = [[NSString alloc] initWithData:self.HTTPBody encoding:NSUTF8StringEncoding];
-    
-#if !__has_feature(objc_arc)
-    [content autorelease];
-#endif
-    
-    content = [content ?: @"" stringByMergingURLQuery:query options:options];
+    NSString *content = [[self.HTTPBody RequestUtils_UTF8String] ?: @"" stringByMergingURLQuery:query options:options];
     NSData *data = [content dataUsingEncoding:NSUTF8StringEncoding];
     
     [self addValue:@"8bit" forHTTPHeaderField:@"Content-Transfer-Encoding"];
@@ -822,7 +804,6 @@ NSString *const URLFragmentComponent = @"fragment";
 
 - (void)setHTTPBasicAuthUser:(NSString *)user password:(NSString *)password
 {
-    NSURLCredential
     NSString *authHeader = [NSString stringWithFormat:@"%@:%@", (user ?: @""), (password ?: @"")];
     authHeader = [NSString stringWithFormat:@"Basic %@", [authHeader base64EncodedString]];
     [self addValue:authHeader forHTTPHeaderField:@"Authorization"];

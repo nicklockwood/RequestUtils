@@ -7,7 +7,7 @@ RequestUtils is a collection of category methods designed to simplify the proces
 Supported OS & SDK Versions
 -----------------------------
 
-* Supported build target - iOS 7.0 / Mac OS 10.9 (Xcode 5.0, Apple LLVM compiler 5.0)
+* Supported build target - iOS 7.1 / Mac OS 10.9 (Xcode 5.1, Apple LLVM compiler 5.0)
 * Earliest supported deployment target - iOS 5.1 / Mac OS 10.7
 * Earliest compatible deployment target - iOS 4.3 / Mac OS 10.6.8
 
@@ -292,3 +292,23 @@ Unlike the other options, which are mutually exclusive, `URLQueryOptionUseArrayS
 Use of the "[]" key suffix is not an official part of the RFC 1808 URL specification, but it is an ad-hoc standard used by a number of popular web server platforms including PHP, and so it can be useful to be able to interpret and/or generate query strings in this format. By default, this option is disabled.
 
 `URLQueryOptionUseArraySyntax` has no effect when parsing query strings using the `URLQueryParameters:` method.
+
+
+Release Notes
+---------------
+
+Version 1.0.2
+
+- Fixed bug in stringByAppendingURLQuery: method
+- Updated to use native base64 support
+- Now conforms to -Weverything warning level
+
+Version 1.0.1
+
+- Updated for Xcode 4.6
+- URLEncoding now copes gracefully with  non-string values (e.g NSNumber)
+- Fixed bug in stringByMergingURLQuery:options: method
+
+Version 1.0
+
+- Initial release.

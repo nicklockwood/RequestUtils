@@ -109,4 +109,17 @@
 	NSAssert([[query URLQueryParametersWithOptions:URLQueryOptionKeepLastValue] isEqual:result2], @"URLQueryParameters test failed");
 }
 
+- (void)testAppendQuery
+{
+    NSString *query1 = @"?foo=bar";
+    NSString *query2 = @"foo=bar";
+    NSString *url1 = @"http://apple.com?";
+    NSString *url2 = @"http://apple.com";
+    NSString *result = @"http://apple.com?foo=bar";
+    NSAssert([[url1 stringByAppendingURLQuery:query1] isEqualToString:result], @"URLQueryParameters test failed");
+    NSAssert([[url1 stringByAppendingURLQuery:query2] isEqualToString:result], @"URLQueryParameters test failed");
+    NSAssert([[url2 stringByAppendingURLQuery:query1] isEqualToString:result], @"URLQueryParameters test failed");
+    NSAssert([[url2 stringByAppendingURLQuery:query2] isEqualToString:result], @"URLQueryParameters test failed");
+}
+
 @end
