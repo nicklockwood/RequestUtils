@@ -313,7 +313,7 @@ NSString *const URLFragmentComponent = @"fragment";
     }
     else
     {
-        result = [result stringByAppendingFormat:@"?%@", query];
+        result = [result stringByAppendingFormat:@"%@", query];
     }
     if ([fragment length])
     {
