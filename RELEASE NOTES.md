@@ -1,3 +1,7 @@
+Version 1.0.2
+
+- Updated to use native base64 support
+
 Version 1.0.1
 
 - Updated for Xcode 4.6

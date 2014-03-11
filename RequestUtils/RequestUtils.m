@@ -1,7 +1,7 @@
 //
 //  RequestUtils.m
 //
-//  Version 1.0.1
+//  Version 1.0.2 beta
 //
 //  Created by Nick Lockwood on 11/01/2012.
 //  Copyright (C) 2012 Charcoal Design
@@ -501,125 +501,46 @@ NSString *const URLFragmentComponent = @"fragment";
 
 - (NSString *)base64EncodedString
 {
-    const char lookup[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    NSData *data = [self dataUsingEncoding:NSUTF8StringEncoding];
     
-    NSData *inputData = [self dataUsingEncoding:NSUTF8StringEncoding allowLossyConversion:YES];
-    long long inputLength = [inputData length];
-    const unsigned char *inputBytes = [inputData bytes];
+#if __MAC_OS_X_VERSION_MIN_REQUIRED < __MAC_10_9 || __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_7_0
     
-    long long maxOutputLength = (inputLength / 3 + 1) * 4;
-    unsigned char *outputBytes = (unsigned char *)malloc(maxOutputLength);
-    
-    long long i;
-    long long outputLength = 0;
-    for (i = 0; i < inputLength - 2; i += 3)
+    if (![self respondsToSelector:@selector(base64EncodedStringWithOptions:)])
     {
-        outputBytes[outputLength++] = lookup[(inputBytes[i] & 0xFC) >> 2];
-        outputBytes[outputLength++] = lookup[((inputBytes[i] & 0x03) << 4) | ((inputBytes[i + 1] & 0xF0) >> 4)];
-        outputBytes[outputLength++] = lookup[((inputBytes[i + 1] & 0x0F) << 2) | ((inputBytes[i + 2] & 0xC0) >> 6)];
-        outputBytes[outputLength++] = lookup[inputBytes[i + 2] & 0x3F];
+        return [data base64Encoding];
     }
     
-    //handle left-over data
-    if (i == inputLength - 2)
-    {
-        // = terminator
-        outputBytes[outputLength++] = lookup[(inputBytes[i] & 0xFC) >> 2];
-        outputBytes[outputLength++] = lookup[((inputBytes[i] & 0x03) << 4) | ((inputBytes[i + 1] & 0xF0) >> 4)];
-        outputBytes[outputLength++] = lookup[(inputBytes[i + 1] & 0x0F) << 2];
-        outputBytes[outputLength++] =   '=';
-    }
-    else if (i == inputLength - 1)
-    {
-        // == terminator
-        outputBytes[outputLength++] = lookup[(inputBytes[i] & 0xFC) >> 2];
-        outputBytes[outputLength++] = lookup[(inputBytes[i] & 0x03) << 4];
-        outputBytes[outputLength++] = '=';
-        outputBytes[outputLength++] = '=';
-    }
-    
-    //truncate data to match actual output length
-    if (outputLength)
-    {
-        outputBytes = realloc(outputBytes, outputLength);
-        NSString *result = [[NSString alloc] initWithBytesNoCopy:outputBytes length:outputLength encoding:NSASCIIStringEncoding freeWhenDone:YES];
-        
-#if !__has_feature(objc_arc)
-        [result autorelease];
 #endif
-        
-        return (outputLength >= 4)? result: nil;
-    }
-    else
-    {
-        free(outputBytes);
-        return nil;
-    }
+
+    return [data base64EncodedStringWithOptions:0];
 }
 
 - (NSString *)base64DecodedString
 {
-    const char lookup[] =
+    NSData *data = nil;
+    
+#if __MAC_OS_X_VERSION_MIN_REQUIRED < __MAC_10_9 || __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_7_0
+    
+    if (![NSData instancesRespondToSelector:@selector(initWithBase64EncodedString:options:)])
     {
-        99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99,
-        99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99,
-        99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 62, 99, 99, 99, 63,
-        52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 99, 99, 99, 99, 99, 99,
-        99,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
-        15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 99, 99, 99, 99, 99,
-        99, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
-        41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 99, 99, 99, 99, 99
-    };
-    
-    NSData *inputData = [self dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
-    long long inputLength = [inputData length];
-    const unsigned char *inputBytes = [inputData bytes];
-    
-    long long maxOutputLength = (inputLength / 4 + 1) * 3;
-    NSMutableData *outputData = [NSMutableData dataWithLength:maxOutputLength];
-    unsigned char *outputBytes = (unsigned char *)[outputData mutableBytes];
-    
-    int accumulator = 0;
-    long long outputLength = 0;
-    unsigned char accumulated[] = {0, 0, 0, 0};
-    for (long long i = 0; i < inputLength; i++)
-    {
-        unsigned char decoded = lookup[inputBytes[i] & 0x7F];
-        if (decoded != 99)
-        {
-            accumulated[accumulator] = decoded;
-            if (accumulator == 3)
-            {
-                outputBytes[outputLength++] = (accumulated[0] << 2) | (accumulated[1] >> 4);
-                outputBytes[outputLength++] = (accumulated[1] << 4) | (accumulated[2] >> 2);
-                outputBytes[outputLength++] = (accumulated[2] << 6) | accumulated[3];
-            }
-            accumulator = (accumulator + 1) % 4;
-        }
-    }
-    
-    //handle left-over data
-    if (accumulator > 0) outputBytes[outputLength] = (accumulated[0] << 2) | (accumulated[1] >> 4);
-    if (accumulator > 1) outputBytes[++outputLength] = (accumulated[1] << 4) | (accumulated[2] >> 2);
-    if (accumulator > 2) outputLength++;
-    
-    //truncate data to match actual output length
-    outputData.length = outputLength;
-    
-    if (outputLength)
-    {
-        NSString *result = [[NSString alloc] initWithData:outputData encoding:NSUTF8StringEncoding];
-        
-#if !__has_feature(objc_arc)
-        [result autorelease];
-#endif
-        
-        return result;
+        data = [[NSData alloc] initWithBase64Encoding:self];
     }
     else
+        
+#endif
+        
     {
-        return nil;
+        data = [[NSData alloc] initWithBase64EncodedString:self options:0];
     }
+    
+    NSString *string = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+    
+#if !__has_feature(objc_arc)
+    [data release];
+    [string autorelease];
+#endif
+    
+    return string;
 }
 
 @end
@@ -901,9 +822,10 @@ NSString *const URLFragmentComponent = @"fragment";
 
 - (void)setHTTPBasicAuthUser:(NSString *)user password:(NSString *)password
 {
+    NSURLCredential
     NSString *authHeader = [NSString stringWithFormat:@"%@:%@", (user ?: @""), (password ?: @"")];
     authHeader = [NSString stringWithFormat:@"Basic %@", [authHeader base64EncodedString]];
-    [self addValue:authHeader forHTTPHeaderField:@"Authorization"];  
+    [self addValue:authHeader forHTTPHeaderField:@"Authorization"];
 }
 
 @end
