@@ -34,6 +34,7 @@
 
 
 #pragma GCC diagnostic ignored "-Wgnu"
+#pragma GCC diagnostic ignored "-Wundef"
 #pragma GCC diagnostic ignored "-Wselector"
 
 
@@ -500,8 +501,8 @@
 - (NSString *)base64EncodedString
 {
     NSData *data = [self dataUsingEncoding:NSUTF8StringEncoding];
-    
-#if __MAC_OS_X_VERSION_MIN_REQUIRED < __MAC_10_9 || __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_7_0
+        
+#if !(__MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_9) && !(__IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_7_0)
     
     if (![self respondsToSelector:@selector(base64EncodedStringWithOptions:)])
     {
@@ -517,14 +518,14 @@
 {
     NSData *data = nil;
     
-#if __MAC_OS_X_VERSION_MIN_REQUIRED < __MAC_10_9 || __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_7_0
+#if !(__MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_9) && !(__IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_7_0)
     
     if (![NSData instancesRespondToSelector:@selector(initWithBase64EncodedString:options:)])
     {
         data = [[NSData alloc] initWithBase64Encoding:self];
     }
     else
-        
+    
 #endif
         
     {
