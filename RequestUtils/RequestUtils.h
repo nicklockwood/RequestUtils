@@ -52,12 +52,22 @@ static NSString *const URLFragmentComponent = @"fragment";
 typedef NS_OPTIONS(NSUInteger, URLQueryOptions)
 {
     URLQueryOptionDefault = 0,
-    URLQueryOptionKeepLastValue = 1,
-    URLQueryOptionKeepFirstValue = 2,
-    URLQueryOptionUseArrays = 3,
-    URLQueryOptionAlwaysUseArrays = 4,
-    URLQueryOptionUseArraySyntax = 8
+    URLQueryOptionKeepLastValue = 1 << 0,
+    URLQueryOptionKeepFirstValue = 1 << 1,
+    URLQueryOptionUseArrays = 1 << 2,
+    URLQueryOptionAlwaysUseArrays = 1 << 3,
+    URLQueryOptionUseArraySyntax = 1 << 4
 };
+
+/*
+ 0000 = 0  URLQueryOptionDefault
+ 0001 = 1  URLQueryOptionKeepLastValue
+ 0010 = 2  URLQueryOptionKeepFirstValue
+ 0011 = 4  URLQueryOptionUseArrays
+ 0100 = 8  URLQueryOptionAlwaysUseArrays
+ 1000 = 16  URLQueryOptionUseArraySyntax
+ */
+
 
 
 @interface NSString (RequestUtils)

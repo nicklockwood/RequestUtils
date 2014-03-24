@@ -180,8 +180,8 @@
 
 + (NSString *)URLQueryWithParameters:(NSDictionary *)parameters options:(URLQueryOptions)options
 {
-    BOOL useArraySyntax = options & 8;
-    URLQueryOptions arrayHandling = (options & 7) ?: URLQueryOptionUseArrays;
+    BOOL useArraySyntax = options & URLQueryOptionUseArraySyntax;
+    URLQueryOptions arrayHandling = (options & (URLQueryOptionUseArrays | URLQueryOptionAlwaysUseArrays)) ?: URLQueryOptionUseArrays;
     
     NSMutableString *result = [NSMutableString string];
     for (NSString *key in parameters)
@@ -333,7 +333,7 @@
 
 - (NSString *)stringByMergingURLQuery:(NSString *)query options:(URLQueryOptions)options
 {
-    URLQueryOptions arrayHandling = (options & 7) ?: URLQueryOptionKeepLastValue;
+    URLQueryOptions arrayHandling = (options & (URLQueryOptionUseArrays | URLQueryOptionAlwaysUseArrays)) ?: URLQueryOptionKeepLastValue;
     
     //check for empty input
     query = [query URLQuery];
@@ -399,7 +399,7 @@
 
 - (NSDictionary *)URLQueryParametersWithOptions:(URLQueryOptions)options
 {
-    URLQueryOptions arrayHandling = (options & 7) ?: URLQueryOptionKeepLastValue;
+    URLQueryOptions arrayHandling = (options & (URLQueryOptionUseArrays | URLQueryOptionAlwaysUseArrays)) ?: URLQueryOptionKeepLastValue;
     
     NSString *queryString = [self URLQuery];
     
