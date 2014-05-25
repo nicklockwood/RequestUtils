@@ -2,4 +2,4 @@ language: objective-c
 before_script:
   - brew update
   - brew upgrade xctool
-script: xctool test -project Tests/RequestQueueTests.xcodeproj -scheme RequestQueueTests -sdk iphonesimulator
+script: xctool test -project Tests/RequestUtilsTests.xcodeproj -scheme RequestUtilsTests -sdk iphonesimulator
