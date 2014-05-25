@@ -6,8 +6,13 @@
 //
 //
 
-#import "RequestTests.h"
+#import <XCTest/XCTest.h>
 #import "RequestUtils.h"
+
+
+@interface RequestTests : XCTestCase
+
+@end
 
 
 @implementation RequestTests
@@ -19,7 +24,7 @@
     NSURL *URL = [NSURL URLWithString:@"http://example.com"];
 	NSDictionary *parameters = [@"foo=bar&bar=foo" URLQueryParameters];
 	NSURLRequest *request = [NSURLRequest GETRequestWithURL:URL parameters:parameters];
-	NSAssert([[request GETParameters] isEqual:parameters], @"GETRequest test failed");
+	XCTAssertEqualObjects([request GETParameters], parameters, @"GETRequest test failed");
 }
 
 - (void)testGETRequest2
@@ -28,7 +33,7 @@
 	NSDictionary *parameters = [@"bar=foo" URLQueryParameters];
     NSDictionary *result = [@"foo=bar&bar=foo" URLQueryParameters];
 	NSURLRequest *request = [NSURLRequest GETRequestWithURL:URL parameters:parameters];
-	NSAssert([[request GETParameters] isEqual:result], @"GETRequest2 test failed");
+	XCTAssertEqualObjects([request GETParameters], result, @"GETRequest2 test failed");
 }
 
 - (void)testGETRequest3
@@ -38,7 +43,7 @@
 	NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:URL];
     [request addGETParameters:parameters options:0];
     NSURL *result = [NSURL URLWithString:@"http://example.com?foo=bar&bar=foo"];
-	NSAssert([[request URL] isEqual:result], @"GETRequest3 test failed");
+	XCTAssertEqualObjects([request URL], result, @"GETRequest3 test failed");
 }
 
 - (void)testPOSTRequest
@@ -46,7 +51,16 @@
     NSURL *URL = [NSURL URLWithString:@"http://example.com"];
 	NSDictionary *parameters = [@"foo=bar&bar=foo" URLQueryParameters];
 	NSURLRequest *request = [NSURLRequest POSTRequestWithURL:URL parameters:parameters];
-	NSAssert([[request POSTParameters] isEqual:parameters], @"POSTRequest test failed");
+	XCTAssertEqualObjects([request POSTParameters], parameters, @"POSTRequest test failed");
+}
+
+- (void)testNonStringPOSTParams
+{
+    NSURL *URL = [NSURL URLWithString:@"http://example.com"];
+	NSDictionary *parameters = @{@"foo": @1, @"bar": [NSValue valueWithRange:NSMakeRange(1, 10)]};
+	NSURLRequest *request = [NSURLRequest POSTRequestWithURL:URL parameters:parameters];
+    NSDictionary *result = @{@"foo": [parameters[@"foo"] description], @"bar": [parameters[@"bar"] description]};
+	XCTAssertEqualObjects([request POSTParameters], result, @"POSTRequest non-strings test failed");
 }
 
 @end

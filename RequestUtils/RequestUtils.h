@@ -1,7 +1,7 @@
 //
 //  RequestUtils.h
 //
-//  Version 1.0.2
+//  Version 1.0.3
 //
 //  Created by Nick Lockwood on 11/01/2012.
 //  Copyright (C) 2012 Charcoal Design
@@ -49,25 +49,18 @@ static NSString *const URLFragmentComponent = @"fragment";
 #endif
 
 
-typedef NS_OPTIONS(NSUInteger, URLQueryOptions)
+typedef NS_ENUM(NSUInteger, URLQueryOptions)
 {
+    //mutually exclusive
     URLQueryOptionDefault = 0,
-    URLQueryOptionKeepLastValue = 1 << 0,
-    URLQueryOptionKeepFirstValue = 1 << 1,
-    URLQueryOptionUseArrays = 1 << 2,
-    URLQueryOptionAlwaysUseArrays = 1 << 3,
-    URLQueryOptionUseArraySyntax = 1 << 4
+    URLQueryOptionKeepLastValue,
+    URLQueryOptionKeepFirstValue,
+    URLQueryOptionUseArrays,
+    URLQueryOptionAlwaysUseArrays,
+    
+    //can be |ed with other values
+    URLQueryOptionUseArraySyntax = 8
 };
-
-/*
- 0000 = 0  URLQueryOptionDefault
- 0001 = 1  URLQueryOptionKeepLastValue
- 0010 = 2  URLQueryOptionKeepFirstValue
- 0011 = 4  URLQueryOptionUseArrays
- 0100 = 8  URLQueryOptionAlwaysUseArrays
- 1000 = 16  URLQueryOptionUseArraySyntax
- */
-
 
 
 @interface NSString (RequestUtils)

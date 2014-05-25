@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/nicklockwood/RequestUtils.svg)](https://travis-ci.org/nicklockwood/RequestUtils)
+
+
 Purpose
 --------------
 
@@ -296,6 +299,11 @@ Use of the "[]" key suffix is not an official part of the RFC 1808 URL specifica
 
 Release Notes
 ---------------
+
+Version 1.0.3
+
+- Fixed crash when request parameter dictionary keys or values are not strings
+- Improved test coverage
 
 Version 1.0.2
 

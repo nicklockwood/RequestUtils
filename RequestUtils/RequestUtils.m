@@ -1,7 +1,7 @@
 //
 //  RequestUtils.m
 //
-//  Version 1.0.2
+//  Version 1.0.3
 //
 //  Created by Nick Lockwood on 11/01/2012.
 //  Copyright (C) 2012 Charcoal Design
@@ -180,31 +180,36 @@
 
 + (NSString *)URLQueryWithParameters:(NSDictionary *)parameters options:(URLQueryOptions)options
 {
-    BOOL useArraySyntax = options & URLQueryOptionUseArraySyntax;
-    URLQueryOptions arrayHandling = (options & (URLQueryOptionUseArrays | URLQueryOptionAlwaysUseArrays)) ?: URLQueryOptionUseArrays;
-    
-    NSMutableString *result = [NSMutableString string];
-    for (NSString *key in parameters)
+    options = options ?: URLQueryOptionUseArrays;
+    BOOL useArraySyntax = !!(options & URLQueryOptionUseArraySyntax);
+    if (useArraySyntax)
     {
-        NSString *encodedKey = [key URLEncodedString];
-        id value = parameters[key];
+        options -= URLQueryOptionUseArraySyntax;
+        NSAssert(options == URLQueryOptionUseArrays || options == URLQueryOptionAlwaysUseArrays,
+                 @"URLQueryOptionUseArraySyntax has no effect unless combined with URLQueryOptionUseArrays or URLQueryOptionAlwaysUseArrays option");
+    }
+  
+    NSMutableString *result = [NSMutableString string];
+    [parameters enumerateKeysAndObjectsUsingBlock:^(id key, id value, __unused BOOL *stop) {
+
+        NSString *encodedKey = [[key description] URLEncodedString];
         if ([value isKindOfClass:[NSArray class]])
         {
-            if (arrayHandling == URLQueryOptionKeepFirstValue && [value count])
+            if (options == URLQueryOptionKeepFirstValue && [value count])
             {
                 if ([result length])
                 {
                     [result appendString:@"&"];
                 }
-                [result appendFormat:@"%@=%@", encodedKey, [value[0] URLEncodedString]];
+                [result appendFormat:@"%@=%@", encodedKey, [[[value firstObject] description] URLEncodedString]];
             }
-            else if (arrayHandling == URLQueryOptionKeepLastValue && [value count])
+            else if (options == URLQueryOptionKeepLastValue && [value count])
             {
                 if ([result length])
                 {
                     [result appendString:@"&"];
                 }
-                [result appendFormat:@"%@=%@", encodedKey, [[value lastObject] URLEncodedString]];
+                [result appendFormat:@"%@=%@", encodedKey, [[[value lastObject] description] URLEncodedString]];
             }
             else
             {
@@ -216,11 +221,11 @@
                     }
                     if (useArraySyntax)
                     {
-                        [result appendFormat:@"%@[]=%@", encodedKey, [element URLEncodedString]];
+                        [result appendFormat:@"%@[]=%@", encodedKey, [[element description] URLEncodedString]];
                     }
                     else
                     {
-                        [result appendFormat:@"%@=%@", encodedKey, [element URLEncodedString]];
+                        [result appendFormat:@"%@=%@", encodedKey, [[element description] URLEncodedString]];
                     }
                 }
             }
@@ -231,16 +236,17 @@
             {
                 [result appendString:@"&"];
             }
-            if (useArraySyntax && arrayHandling == URLQueryOptionAlwaysUseArrays)
+            if (useArraySyntax && options == URLQueryOptionAlwaysUseArrays)
             {
-                [result appendFormat:@"%@[]=%@", encodedKey, [value URLEncodedString]];
+                [result appendFormat:@"%@[]=%@", encodedKey, [[value description] URLEncodedString]];
             }
             else
             {
-                [result appendFormat:@"%@=%@", encodedKey, [value URLEncodedString]];
+                [result appendFormat:@"%@=%@", encodedKey, [[value description] URLEncodedString]];
             }
         }
-    }
+    }];
+    
     return result;
 }
 
@@ -333,7 +339,8 @@
 
 - (NSString *)stringByMergingURLQuery:(NSString *)query options:(URLQueryOptions)options
 {
-    URLQueryOptions arrayHandling = (options & (URLQueryOptionUseArrays | URLQueryOptionAlwaysUseArrays)) ?: URLQueryOptionKeepLastValue;
+    NSParameterAssert(options <= URLQueryOptionAlwaysUseArrays);
+    options = options ?: URLQueryOptionKeepLastValue;
     
     //check for empty input
     query = [query URLQuery];
@@ -372,17 +379,17 @@
             {
                 value = [@[oldValue] arrayByAddingObjectsFromArray:value];
             }
-            else if (arrayHandling == URLQueryOptionKeepFirstValue)
+            else if (options == URLQueryOptionKeepFirstValue)
             {
                 value = oldValue;
             }
-            else if (arrayHandling == URLQueryOptionUseArrays ||
-                     arrayHandling == URLQueryOptionAlwaysUseArrays)
+            else if (options == URLQueryOptionUseArrays ||
+                     options == URLQueryOptionAlwaysUseArrays)
             {
                 value = @[oldValue, value];
             }
         }
-        else if (arrayHandling == URLQueryOptionAlwaysUseArrays)
+        else if (options == URLQueryOptionAlwaysUseArrays)
         {
             value = @[value];
         }
@@ -399,7 +406,8 @@
 
 - (NSDictionary *)URLQueryParametersWithOptions:(URLQueryOptions)options
 {
-    URLQueryOptions arrayHandling = (options & (URLQueryOptionUseArrays | URLQueryOptionAlwaysUseArrays)) ?: URLQueryOptionKeepLastValue;
+    NSParameterAssert(options <= URLQueryOptionAlwaysUseArrays);
+    options = options ?: URLQueryOptionKeepLastValue;
     
     NSString *queryString = [self URLQuery];
     
@@ -424,17 +432,16 @@
             }
             else if (existingValue)
             {
-                if (arrayHandling == URLQueryOptionKeepFirstValue)
+                if (options == URLQueryOptionKeepFirstValue)
                 {
                     value = existingValue;
                 }
-                else if (arrayHandling != URLQueryOptionKeepLastValue)
+                else if (options != URLQueryOptionKeepLastValue)
                 {
                     value = @[existingValue, value];
                 }
             }
-            else if ((arrayValue && arrayHandling == URLQueryOptionUseArrays) ||
-                     arrayHandling == URLQueryOptionAlwaysUseArrays)
+            else if ((arrayValue && options == URLQueryOptionUseArrays) || options == URLQueryOptionAlwaysUseArrays)
             {
                 value = @[value];
             }
