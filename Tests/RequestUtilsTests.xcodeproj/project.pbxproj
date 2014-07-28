@@ -13,6 +13,7 @@
 		01D28C891907BFC80021C719 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01D28C881907BFC80021C719 /* XCTest.framework */; };
 		01D28C8A1907BFC80021C719 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01D28C6F1907BFC80021C719 /* Foundation.framework */; };
 		01D28C8B1907BFC80021C719 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01D28C731907BFC80021C719 /* UIKit.framework */; };
+		5D2BE8EE1985DE4000C4A333 /* URLTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 5D2BE8ED1985DE4000C4A333 /* URLTests.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +27,7 @@
 		01D28C871907BFC80021C719 /* RequestUtilsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RequestUtilsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		01D28C881907BFC80021C719 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		01D28C901907BFC80021C719 /* RequestUtilsTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "RequestUtilsTests-Info.plist"; sourceTree = "<group>"; };
+		5D2BE8ED1985DE4000C4A333 /* URLTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = URLTests.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,6 +88,7 @@
 			children = (
 				01244B041932950F000BF3CD /* RequestTests.m */,
 				01244B061932950F000BF3CD /* StringTests.m */,
+				5D2BE8ED1985DE4000C4A333 /* URLTests.m */,
 				01D28C8F1907BFC80021C719 /* Supporting Files */,
 			);
 			path = RequestUtilsTests;
@@ -168,6 +171,7 @@
 				01244B081932950F000BF3CD /* StringTests.m in Sources */,
 				01244B071932950F000BF3CD /* RequestTests.m in Sources */,
 				01244B0C1932953A000BF3CD /* RequestUtils.m in Sources */,
+				5D2BE8EE1985DE4000C4A333 /* URLTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
