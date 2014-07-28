@@ -677,7 +677,7 @@
 
 - (NSURL *)URLWithPath:(NSString *)path
 {
-    return [self URLWithValue:path forComponent:URLPasswordComponent];
+    return [self URLWithValue:path forComponent:URLPathComponent];
 }
 
 - (NSURL *)URLWithParameterString:(NSString *)parameterString
