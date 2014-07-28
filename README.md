@@ -10,7 +10,7 @@ RequestUtils is a collection of category methods designed to simplify the proces
 Supported OS & SDK Versions
 -----------------------------
 
-* Supported build target - iOS 7.1 / Mac OS 10.9 (Xcode 5.1, Apple LLVM compiler 5.0)
+* Supported build target - iOS 8 / Mac OS 10.9 (Xcode 6.0, Apple LLVM compiler 6.0)
 * Earliest supported deployment target - iOS 5.1 / Mac OS 10.7
 * Earliest compatible deployment target - iOS 4.3 / Mac OS 10.6.8
 
@@ -299,6 +299,10 @@ Use of the "[]" key suffix is not an official part of the RFC 1808 URL specifica
 
 Release Notes
 ---------------
+
+Version 1.0.4
+
+- Fixed bug in -[NSURL URLWithPath:]
 
 Version 1.0.3
 

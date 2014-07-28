@@ -22,14 +22,14 @@
 - (void)testInvalidURL
 {
 	NSString *invalidURLString = @"foo\\bar";
-	XCTAssertNil([invalidURLString URLValue], @"URLValue invalid URL test failed");
+	XCTAssertNil([invalidURLString URLValue]);
 }
 
 - (void)testURLFragment
 {
 	NSString *validURLString = @"?foo=bar";
-	XCTAssertNotNil([validURLString URLValue], @"URLValue URL fragment test failed");
-	XCTAssertEqualObjects([[validURLString URLValue] query], @"foo=bar", @"URLValue URL fragment test failed");
+	XCTAssertNotNil([validURLString URLValue]);
+	XCTAssertEqualObjects([[validURLString URLValue] query], @"foo=bar");
 }
 
 #pragma mark Paths
@@ -37,7 +37,7 @@
 - (void)textURLEncoding
 {
     NSString *input = @"foo bar";
-	XCTAssertEqualObjects([input URLEncodedString], @"foo%20bar", @"URLEncoding test failed");
+	XCTAssertEqualObjects([input URLEncodedString], @"foo%20bar");
 }
 
 #pragma mark Paths
@@ -46,21 +46,21 @@
 {
 	NSString *URLString = @"http://hello";
     URLString = [URLString stringByAppendingURLPathComponent:@"world"];
-	XCTAssertEqualObjects(URLString, @"http://hello/world", @"URL append path test failed");
+	XCTAssertEqualObjects(URLString, @"http://hello/world");
 }
 
 - (void)testAppendPath2
 {
 	NSString *URLString = @"http://hello?foo=bar";
     URLString = [URLString stringByAppendingURLPathComponent:@"world"];
-	XCTAssertEqualObjects(URLString, @"http://hello/world?foo=bar", @"URL append path test failed");
+	XCTAssertEqualObjects(URLString, @"http://hello/world?foo=bar");
 }
 
 - (void)testAppendPath3
 {
 	NSString *URLString = @"hello#world";
     URLString = [URLString stringByAppendingURLPathComponent:@"world"];
-	XCTAssertEqualObjects(URLString, @"hello/world#world", @"URL append path test failed");
+	XCTAssertEqualObjects(URLString, @"hello/world#world");
 }
 
 #pragma mark Path extension
@@ -69,7 +69,7 @@
 {
 	NSString *URLString = @"http://hello";
     URLString = [URLString stringByAppendingURLPathExtension:@"world"];
-	XCTAssertEqualObjects(URLString, @"http://hello.world", @"URL append path extension test failed");
+	XCTAssertEqualObjects(URLString, @"http://hello.world");
 }
 
 #pragma mark Query strings
@@ -78,7 +78,7 @@
 {
 	NSString *query = @"?foo=bar&bar=foo";
 	NSDictionary *result = @{@"foo": @"bar", @"bar": @"foo"};
-	XCTAssertEqualObjects([query URLQueryParametersWithOptions:0], result, @"URLQueryParameters test failed");
+	XCTAssertEqualObjects([query URLQueryParametersWithOptions:0], result);
 }
 
 - (void)testArrayQueryString
@@ -87,9 +87,9 @@
 	NSDictionary *result1 = @{@"foo": @"bar", @"bar": @[@"foo", @"bar"]};
 	NSDictionary *result2 = @{@"foo": @"bar", @"bar": @"bar"};
 	NSDictionary *result3 = @{@"foo": @[@"bar"], @"bar": @[@"foo", @"bar"]};
-	XCTAssertEqualObjects([query URLQueryParametersWithOptions:URLQueryOptionUseArrays], result1, @"URLQueryParameters test failed");
-	XCTAssertEqualObjects([query URLQueryParametersWithOptions:URLQueryOptionKeepLastValue], result2, @"URLQueryParameters test failed");
-	XCTAssertEqualObjects([query URLQueryParametersWithOptions:URLQueryOptionAlwaysUseArrays], result3, @"URLQueryParameters test failed");
+	XCTAssertEqualObjects([query URLQueryParametersWithOptions:URLQueryOptionUseArrays], result1);
+	XCTAssertEqualObjects([query URLQueryParametersWithOptions:URLQueryOptionKeepLastValue], result2);
+	XCTAssertEqualObjects([query URLQueryParametersWithOptions:URLQueryOptionAlwaysUseArrays], result3);
 }
 
 - (void)testArrayQueryString2
@@ -97,8 +97,8 @@
 	NSString *query = @"?foo[]=bar&bar[]=foo&bar[]=bar";
 	NSDictionary *result1 = @{@"foo": @[@"bar"], @"bar": @[@"foo", @"bar"]};
 	NSDictionary *result2 = @{@"foo": @"bar", @"bar": @"bar"};
-	XCTAssertEqualObjects([query URLQueryParametersWithOptions:URLQueryOptionUseArrays], result1, @"URLQueryParameters test failed");
-	XCTAssertEqualObjects([query URLQueryParametersWithOptions:URLQueryOptionKeepLastValue], result2, @"URLQueryParameters test failed");
+	XCTAssertEqualObjects([query URLQueryParametersWithOptions:URLQueryOptionUseArrays], result1);
+	XCTAssertEqualObjects([query URLQueryParametersWithOptions:URLQueryOptionKeepLastValue], result2);
 }
 
 - (void)testUseArraySyntax
@@ -117,10 +117,10 @@
     NSString *URLString1 = @"http://apple.com?";
     NSString *URLString2 = @"http://apple.com";
     NSString *result = @"http://apple.com?foo=bar";
-    XCTAssertEqualObjects([URLString1 stringByAppendingURLQuery:query1], result, @"URLQueryParameters test failed");
-    XCTAssertEqualObjects([URLString1 stringByAppendingURLQuery:query2], result, @"URLQueryParameters test failed");
-    XCTAssertEqualObjects([URLString2 stringByAppendingURLQuery:query1], result, @"URLQueryParameters test failed");
-    XCTAssertEqualObjects([URLString2 stringByAppendingURLQuery:query2], result, @"URLQueryParameters test failed");
+    XCTAssertEqualObjects([URLString1 stringByAppendingURLQuery:query1], result);
+    XCTAssertEqualObjects([URLString1 stringByAppendingURLQuery:query2], result);
+    XCTAssertEqualObjects([URLString2 stringByAppendingURLQuery:query1], result);
+    XCTAssertEqualObjects([URLString2 stringByAppendingURLQuery:query2], result);
 }
 
 - (void)testMergeQuery
@@ -132,12 +132,12 @@
     NSString *URLString3 = @"http://apple.com?baz=bleem";
     NSString *result1 = @"http://apple.com?foo=bar";
     NSString *result2 = @"http://apple.com?baz=bleem&foo=bar";
-    XCTAssertEqualObjects([URLString1 stringByMergingURLQuery:query1], result1, @"URLQueryParameters test failed");
-    XCTAssertEqualObjects([URLString1 stringByMergingURLQuery:query2], result1, @"URLQueryParameters test failed");
-    XCTAssertEqualObjects([URLString2 stringByMergingURLQuery:query1], result1, @"URLQueryParameters test failed");
-    XCTAssertEqualObjects([URLString2 stringByMergingURLQuery:query2], result1, @"URLQueryParameters test failed");
-    XCTAssertEqualObjects([URLString3 stringByMergingURLQuery:query1], result2, @"URLQueryParameters test failed");
-    XCTAssertEqualObjects([URLString3 stringByMergingURLQuery:query2], result2, @"URLQueryParameters test failed");
+    XCTAssertEqualObjects([URLString1 stringByMergingURLQuery:query1], result1);
+    XCTAssertEqualObjects([URLString1 stringByMergingURLQuery:query2], result1);
+    XCTAssertEqualObjects([URLString2 stringByMergingURLQuery:query1], result1);
+    XCTAssertEqualObjects([URLString2 stringByMergingURLQuery:query2], result1);
+    XCTAssertEqualObjects([URLString3 stringByMergingURLQuery:query1], result2);
+    XCTAssertEqualObjects([URLString3 stringByMergingURLQuery:query2], result2);
 }
 
 @end

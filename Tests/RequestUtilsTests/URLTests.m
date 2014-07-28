@@ -19,7 +19,7 @@
 - (void)testURLWithPath
 {
 	NSURL *url = [[NSURL URLWithString:@"http://local.host"] URLWithPath:@"/test"];
-	XCTAssertTrue([[url absoluteString] isEqualToString:@"http://local.host/test"]);
+	XCTAssertEqualObjects([url absoluteString], @"http://local.host/test");
 }
 
 @end

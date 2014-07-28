@@ -1,7 +1,7 @@
 //
 //  RequestUtils.h
 //
-//  Version 1.0.3
+//  Version 1.0.4
 //
 //  Created by Nick Lockwood on 11/01/2012.
 //  Copyright (C) 2012 Charcoal Design
