@@ -1,3 +1,2 @@
 language: objective-c
-xcode_project: Tests/RequestUtilsTests.xcodeproj
-xcode_scheme: RequestUtilsTests
+script: xctool test -project Tests/RequestUtilsTests.xcodeproj -scheme RequestUtilsTests -sdk iphonesimulator
