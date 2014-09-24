@@ -10,7 +10,7 @@
     "tag": "1.1"
   },
   "source_files": "RequestUtils/RequestUtils.{h,m}",
-  "requires_arc": false,
+  "requires_arc": true,
   "platforms": {
     "osx": "10.6",
     "ios": "4.3"
