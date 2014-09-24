@@ -140,4 +140,11 @@
     XCTAssertEqualObjects([URLString3 stringByMergingURLQuery:query2], result2);
 }
 
+- (void)testOrderedQuery
+{
+    NSDictionary *parameters = @{@"baz": @1, @"foo": @2, @"bar": @3};
+    NSString *result = @"bar=3&baz=1&foo=2";
+    XCTAssertEqualObjects([NSString URLQueryWithParameters:parameters options:URLQueryOptionSortKeys], result);
+}
+
 @end

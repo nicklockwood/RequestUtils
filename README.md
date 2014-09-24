@@ -20,7 +20,9 @@ NOTE: 'Supported' means that the library has been tested with this version. 'Com
 ARC Compatibility
 ------------------
 
-RequestUtils makes use of conditional compilation to automatically work with both ARC and non-ARC projects. There is no need to exclude RequestUtils files from the ARC validation process, or to convert RequestUtils using the ARC conversion tool.
+As of version 1.1, RequestUtils requires ARC. If you wish to use RequestUtils in a non-ARC project, just add the -fobjc-arc compiler flag to the RequestUtils.m class file. To do this, go to the Build Phases tab in your target settings, open the Compile Sources group, double-click RequestUtils.m in the list and type -fobjc-arc into the popover.
+ 
+If you wish to convert your whole project to ARC, comment out the #error line in RequestUtils.m, then run the Edit > Refactor > Convert to Objective-C ARC... tool in Xcode and make sure all files that you wish to use ARC for (including RequestUtils.m) are checked.
 
 
 Thread Safety
@@ -290,15 +292,23 @@ When generating a query string from a dictionary using `URLQueryWithParameters:o
 	
 	URLQueryOptionUseArraySyntax
 
-Unlike the other options, which are mutually exclusive, `URLQueryOptionUseArraySyntax` can be combined with `URLQueryOptionUseArrays` or `URLQueryOptionAlwaysUseArrays` to affect output. When generating a query string from a dictionary using `URLQueryWithParameters:options:`, setting this option means that any key with multiple value (or any key *period* if `URLQueryOptionAlwaysUseArrays` is used) will be suffixed with the "[]" syntax to indicate that it is part of a parameter array.
+Unlike the previous options, which are mutually exclusive, `URLQueryOptionUseArraySyntax` can be combined with `URLQueryOptionUseArrays` or `URLQueryOptionAlwaysUseArrays` to affect output. When generating a query string from a dictionary using `URLQueryWithParameters:options:`, setting this option means that any key with multiple value (or any key *period* if `URLQueryOptionAlwaysUseArrays` is used) will be suffixed with the "[]" syntax to indicate that it is part of a parameter array.
 
 Use of the "[]" key suffix is not an official part of the RFC 1808 URL specification, but it is an ad-hoc standard used by a number of popular web server platforms including PHP, and so it can be useful to be able to interpret and/or generate query strings in this format. By default, this option is disabled.
 
 `URLQueryOptionUseArraySyntax` has no effect when parsing query strings using the `URLQueryParameters:` method.
-
+    
+    URLQueryOptionSortKeys
+ 
+The URLQueryOptionSortKeys option can be combined with any of the previous options. It is used when generating a query string to ensure that the keys in the resultant string will be outputed in a consistent order (alphabetical). This can be useful when performing unit tests, or cryptographic hashes on the resultant string, where you need to be able to depend on the order remaining consistent.
 
 Release Notes
 ---------------
+ 
+Version 1.1
+ 
+- Added URLQueryOptionSortKeys option
+- Now requires ARC
 
 Version 1.0.4
 

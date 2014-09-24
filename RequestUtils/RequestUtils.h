@@ -1,7 +1,7 @@
 //
 //  RequestUtils.h
 //
-//  Version 1.0.4
+//  Version 1.1
 //
 //  Created by Nick Lockwood on 11/01/2012.
 //  Copyright (C) 2012 Charcoal Design
@@ -59,7 +59,8 @@ typedef NS_ENUM(NSUInteger, URLQueryOptions)
     URLQueryOptionAlwaysUseArrays,
     
     //can be |ed with other values
-    URLQueryOptionUseArraySyntax = 8
+    URLQueryOptionUseArraySyntax = 8,
+    URLQueryOptionSortKeys = 16
 };
 
 

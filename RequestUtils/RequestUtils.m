@@ -1,7 +1,7 @@
 //
 //  RequestUtils.m
 //
-//  Version 1.0.4
+//  Version 1.1
 //
 //  Created by Nick Lockwood on 11/01/2012.
 //  Copyright (C) 2012 Charcoal Design
@@ -33,6 +33,12 @@
 #import "RequestUtils.h"
 
 
+#import <Availability.h>
+#if !__has_feature(objc_arc)
+#error This class requires automatic reference counting
+#endif
+
+
 #pragma GCC diagnostic ignored "-Wgnu"
 #pragma GCC diagnostic ignored "-Wundef"
 #pragma GCC diagnostic ignored "-Wselector"
@@ -42,13 +48,7 @@
 
 - (NSString *)RequestUtils_UTF8String
 {
-    NSString *string = [[NSString alloc] initWithData:self encoding:NSUTF8StringEncoding];
-    
-#if !__has_feature(objc_arc)
-    [string autorelease];
-#endif
-    
-    return string;
+    return [[NSString alloc] initWithData:self encoding:NSUTF8StringEncoding];
 }
 
 @end
@@ -181,6 +181,13 @@
 + (NSString *)URLQueryWithParameters:(NSDictionary *)parameters options:(URLQueryOptions)options
 {
     options = options ?: URLQueryOptionUseArrays;
+    
+    BOOL sortKeys = !!(options & URLQueryOptionSortKeys);
+    if (sortKeys)
+    {
+        options -= URLQueryOptionSortKeys;
+    }
+    
     BOOL useArraySyntax = !!(options & URLQueryOptionUseArraySyntax);
     if (useArraySyntax)
     {
@@ -190,8 +197,11 @@
     }
   
     NSMutableString *result = [NSMutableString string];
-    [parameters enumerateKeysAndObjectsUsingBlock:^(id key, id value, __unused BOOL *stop) {
-
+    NSArray *keys = [parameters allKeys];
+    if (sortKeys) keys = [keys sortedArrayUsingSelector:@selector(compare:)];
+    for (NSString *key in keys)
+    {
+        id value = parameters[key];
         NSString *encodedKey = [[key description] URLEncodedString];
         if ([value isKindOfClass:[NSArray class]])
         {
@@ -245,7 +255,7 @@
                 [result appendFormat:@"%@=%@", encodedKey, [[value description] URLEncodedString]];
             }
         }
-    }];
+    }
     
     return result;
 }
@@ -539,13 +549,7 @@
         data = [[NSData alloc] initWithBase64EncodedString:self options:(NSDataBase64DecodingOptions)0];
     }
     
-    NSString *string = [data RequestUtils_UTF8String];
-    
-#if !__has_feature(objc_arc)
-    [data release];
-#endif
-    
-    return string;
+    return [data RequestUtils_UTF8String];
 }
 
 @end
