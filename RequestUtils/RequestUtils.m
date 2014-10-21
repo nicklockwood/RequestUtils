@@ -460,37 +460,6 @@
             value = @[value];
         }
         result[key] = value;
-        
-//        if ([parts count] > 1)
-//        {
-//            id value = [parts[1] URLDecodedString:YES];
-//            BOOL arrayValue = [key hasSuffix:@"[]"];
-//            if (arrayValue)
-//            {
-//                key = [key substringToIndex:[key length] - 2];
-//            }
-//            id existingValue = result[key];
-//            if ([existingValue isKindOfClass:[NSArray class]])
-//            {
-//                value = [existingValue arrayByAddingObject:value];
-//            }
-//            else if (existingValue)
-//            {
-//                if (options == URLQueryOptionKeepFirstValue)
-//                {
-//                    value = existingValue;
-//                }
-//                else if (options != URLQueryOptionKeepLastValue)
-//                {
-//                    value = @[existingValue, value];
-//                }
-//            }
-//            else if ((arrayValue && options == URLQueryOptionUseArrays) || options == URLQueryOptionAlwaysUseArrays)
-//            {
-//                value = @[value];
-//            }
-//            result[key] = value;
-//        }
     }
     return result;
 }
