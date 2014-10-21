@@ -195,7 +195,7 @@
         NSAssert(options == URLQueryOptionUseArrays || options == URLQueryOptionAlwaysUseArrays,
                  @"URLQueryOptionUseArraySyntax has no effect unless combined with URLQueryOptionUseArrays or URLQueryOptionAlwaysUseArrays option");
     }
-  
+    
     NSMutableString *result = [NSMutableString string];
     NSArray *keys = [parameters allKeys];
     if (sortKeys) keys = [keys sortedArrayUsingSelector:@selector(compare:)];
@@ -405,7 +405,7 @@
         }
         parameters[key] = value;
     }
-
+    
     return [self stringByReplacingURLQueryWithQuery:[NSString URLQueryWithParameters:parameters options:options]];
 }
 
@@ -425,38 +425,72 @@
     NSArray *parameters = [queryString componentsSeparatedByString:@"&"];
     for (NSString *parameter in parameters)
     {
-        NSArray *parts = [parameter componentsSeparatedByString:@"="];
-        NSString *key = [parts[0] URLDecodedString:YES];
-        if ([parts count] > 1)
-        {
-            id value = [parts[1] URLDecodedString:YES];
-            BOOL arrayValue = [key hasSuffix:@"[]"];
-            if (arrayValue)
-            {
-                key = [key substringToIndex:[key length] - 2];
-            }
-            id existingValue = result[key];
-            if ([existingValue isKindOfClass:[NSArray class]])
-            {
-                value = [existingValue arrayByAddingObject:value];
-            }
-            else if (existingValue)
-            {
-                if (options == URLQueryOptionKeepFirstValue)
-                {
-                    value = existingValue;
-                }
-                else if (options != URLQueryOptionKeepLastValue)
-                {
-                    value = @[existingValue, value];
-                }
-            }
-            else if ((arrayValue && options == URLQueryOptionUseArrays) || options == URLQueryOptionAlwaysUseArrays)
-            {
-                value = @[value];
-            }
-            result[key] = value;
+        NSRange range = [parameter rangeOfString:@"="];
+        if (range.length == 0) {
+            continue;
         }
+        NSString *keyOriginal = [parameter substringToIndex:range.location];
+        NSString *valueOriginal = [parameter substringFromIndex:range.location + 1];
+        NSString *key = [keyOriginal URLDecodedString:YES];
+        
+        id value = [valueOriginal URLDecodedString:YES];
+        BOOL arrayValue = [key hasSuffix:@"[]"];
+        if (arrayValue)
+        {
+            key = [key substringToIndex:[key length] - 2];
+        }
+        id existingValue = result[key];
+        if ([existingValue isKindOfClass:[NSArray class]])
+        {
+            value = [existingValue arrayByAddingObject:value];
+        }
+        else if (existingValue)
+        {
+            if (options == URLQueryOptionKeepFirstValue)
+            {
+                value = existingValue;
+            }
+            else if (options != URLQueryOptionKeepLastValue)
+            {
+                value = @[existingValue, value];
+            }
+        }
+        else if ((arrayValue && options == URLQueryOptionUseArrays) || options == URLQueryOptionAlwaysUseArrays)
+        {
+            value = @[value];
+        }
+        result[key] = value;
+        
+//        if ([parts count] > 1)
+//        {
+//            id value = [parts[1] URLDecodedString:YES];
+//            BOOL arrayValue = [key hasSuffix:@"[]"];
+//            if (arrayValue)
+//            {
+//                key = [key substringToIndex:[key length] - 2];
+//            }
+//            id existingValue = result[key];
+//            if ([existingValue isKindOfClass:[NSArray class]])
+//            {
+//                value = [existingValue arrayByAddingObject:value];
+//            }
+//            else if (existingValue)
+//            {
+//                if (options == URLQueryOptionKeepFirstValue)
+//                {
+//                    value = existingValue;
+//                }
+//                else if (options != URLQueryOptionKeepLastValue)
+//                {
+//                    value = @[existingValue, value];
+//                }
+//            }
+//            else if ((arrayValue && options == URLQueryOptionUseArrays) || options == URLQueryOptionAlwaysUseArrays)
+//            {
+//                value = @[value];
+//            }
+//            result[key] = value;
+//        }
     }
     return result;
 }
@@ -518,7 +552,7 @@
 - (NSString *)base64EncodedString
 {
     NSData *data = [self dataUsingEncoding:NSUTF8StringEncoding];
-        
+    
 #if !(__MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_9) && !(__IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_7_0)
     
     if (![self respondsToSelector:@selector(base64EncodedStringWithOptions:)])
@@ -527,7 +561,7 @@
     }
     
 #endif
-
+    
     return [data base64EncodedStringWithOptions:(NSDataBase64EncodingOptions)0];
 }
 
@@ -542,7 +576,7 @@
         data = [[NSData alloc] initWithBase64Encoding:self];
     }
     else
-    
+        
 #endif
         
     {
@@ -624,10 +658,10 @@
 {
     NSMutableDictionary *result = [NSMutableDictionary dictionary];
     for (NSString *key in @[URLSchemeComponent, URLHostComponent,
-                           URLPortComponent, URLUserComponent,
-                           URLPasswordComponent, URLPortComponent,
-                           URLPathComponent, URLParameterStringComponent,
-                           URLQueryComponent, URLFragmentComponent])
+                            URLPortComponent, URLUserComponent,
+                            URLPasswordComponent, URLPortComponent,
+                            URLPathComponent, URLParameterStringComponent,
+                            URLQueryComponent, URLFragmentComponent])
     {
         id value = [self valueForKey:key];
         if (value)
@@ -761,7 +795,7 @@
 
 - (NSString *)HTTPBasicAuthUser
 {
-	return [self HTTPBasicAuthComponents][0];
+    return [self HTTPBasicAuthComponents][0];
 }
 
 - (NSString *)HTTPBasicAuthPassword
@@ -800,7 +834,7 @@
 {
     [self setPOSTParameters:parameters options:URLQueryOptionDefault];
 }
-                       
+
 - (void)setPOSTParameters:(NSDictionary *)parameters options:(URLQueryOptions)options
 {
     NSString *content = [NSString URLQueryWithParameters:parameters options:options];
