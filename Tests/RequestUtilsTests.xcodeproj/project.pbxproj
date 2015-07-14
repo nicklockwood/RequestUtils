@@ -255,6 +255,7 @@
 					"-Wno-objc-missing-property-synthesis",
 					"-Wno-sign-compare",
 					"-Wno-documentation-unknown-command",
+					"-Wno-cstring-format-directive",
 				);
 			};
 			name = Debug;
@@ -329,6 +330,7 @@
 					"-Wno-objc-missing-property-synthesis",
 					"-Wno-sign-compare",
 					"-Wno-documentation-unknown-command",
+					"-Wno-cstring-format-directive",
 				);
 			};
 			name = Release;
