@@ -1,2 +1,3 @@
 language: objective-c
+osx_image: xcode6.4
 script: xctool test -project Tests/RequestUtilsTests.xcodeproj -scheme RequestUtilsTests -sdk iphonesimulator
