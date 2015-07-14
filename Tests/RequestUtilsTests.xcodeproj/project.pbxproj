@@ -63,6 +63,7 @@
 				01D28C6D1907BFC80021C719 /* Products */,
 			);
 			sourceTree = "<group>";
+			usesTabs = 0;
 		};
 		01D28C6D1907BFC80021C719 /* Products */ = {
 			isa = PBXGroup;
