@@ -61,7 +61,7 @@
 - (NSString *)URLEncodedString
 {
     CFStringRef encoded = CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
-                                                                  (__bridge CFStringRef)[self description],
+                                                                  (__bridge CFStringRef)self,
                                                                   NULL,
                                                                   CFSTR("!*'\"();:@&=+$,/?%#[]% "),
                                                                   kCFStringEncodingUTF8);
@@ -70,7 +70,7 @@
 
 - (NSString *)URLDecodedString:(BOOL)decodePlusAsSpace
 {
-    NSString *string = [self description];
+    NSString *string = self;
     if (decodePlusAsSpace)
     {
         string = [string stringByReplacingOccurrencesOfString:@"+" withString:@" "];
