@@ -10,8 +10,8 @@ RequestUtils is a collection of category methods designed to simplify the proces
 Supported OS & SDK Versions
 -----------------------------
 
-* Supported build target - iOS 8 / Mac OS 10.9 (Xcode 6.0, Apple LLVM compiler 6.0)
-* Earliest supported deployment target - iOS 5.1 / Mac OS 10.7
+* Supported build target - iOS 8.4 / Mac OS 10.10 (Xcode 6.4, Apple LLVM compiler 6.1)
+* Earliest supported deployment target - iOS 7.1 / Mac OS 10.9
 * Earliest compatible deployment target - iOS 4.3 / Mac OS 10.6.8
 
 NOTE: 'Supported' means that the library has been tested with this version. 'Compatible' means that the library should work on this iOS version (i.e. it doesn't rely on any unavailable SDK features) but is no longer being tested for compatibility and may require tweaking or bug fixes to run correctly.
@@ -305,6 +305,11 @@ The URLQueryOptionSortKeys option can be combined with any of the previous optio
 Release Notes
 ---------------
  
+Version 1.1.1
+
+- Fixed warnings on Xcode 6.3 and 7.0
+- Removed redundant `[self description]` calls
+
 Version 1.1
  
 - Added URLQueryOptionSortKeys option

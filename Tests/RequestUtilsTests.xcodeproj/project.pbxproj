@@ -256,6 +256,9 @@
 					"-Wno-sign-compare",
 					"-Wno-documentation-unknown-command",
 					"-Wno-cstring-format-directive",
+					"-Wno-undef",
+					"-Wno-reserved-id-macro",
+					"-Wno-unknown-warning-option",
 				);
 			};
 			name = Debug;
@@ -331,6 +334,9 @@
 					"-Wno-sign-compare",
 					"-Wno-documentation-unknown-command",
 					"-Wno-cstring-format-directive",
+					"-Wno-undef",
+					"-Wno-reserved-id-macro",
+					"-Wno-unknown-warning-option",
 				);
 			};
 			name = Release;

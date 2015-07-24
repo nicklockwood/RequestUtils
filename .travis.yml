@@ -1,3 +1,6 @@
 language: objective-c
+before_script:
+- brew update
+- brew upgrade xctool || true
 osx_image: xcode6.4
 script: xctool test -project Tests/RequestUtilsTests.xcodeproj -scheme RequestUtilsTests -sdk iphonesimulator
