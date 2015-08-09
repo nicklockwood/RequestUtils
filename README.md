@@ -254,6 +254,25 @@ This method works like the `setPOSTParameters:` method except that the parameter
 
 This method sets the HTTP basic auth username and password for the request. The username and password are set using the `Authorization` header of the request.
 
+    - (void)setMultipartFormData:(void (^)(URLRequestMultipartFormDataConstructor *constructor))constructorBlock
+    - (void)setMultipartFormDataWithBoundary:(NSString *)boundary constructor:(void (^)(URLRequestMultipartFormDataConstructor *constructor))constructorBlock
+
+This method sets up a multipart form data request using a block that handles the construction of the multipart request data and the content-type headers.
+
+
+URLRequestMultipartFormDataConstructor
+---------------------
+
+The `setMultipartFormData` methods above accept a block that is passed an instance of this class to build the form-data request.
+
+    - (void)addPartWithKey:(NSString *)key withValue:(id)value
+
+This method adds a part to the request with the specified key/value pair.
+
+    - (void)addPartWithKey:(NSString *)key withFilename:(NSString *)filename withContentType:(NSString *)contentType withValue:(NSData *)value
+
+This method adds a file attachment part to the request with the specified key/value pair.
+
 
 URLQueryOptions
 ---------------------

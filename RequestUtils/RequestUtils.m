@@ -773,6 +773,53 @@
 @end
 
 
+@interface URLRequestMultipartFormDataConstructor ()
+
+@property (nonatomic, strong) NSMutableData *body;
+
+@end
+
+
+@implementation URLRequestMultipartFormDataConstructor
+
+- (instancetype)initWithBoundary:(NSString *)boundary
+{
+    self = [super init];
+    if (!self)
+        return nil;
+    
+    self.body = [NSMutableData data];
+    self.boundary = boundary;
+    
+    return self;
+}
+
+- (void)addPartWithKey:(NSString *)key withValue:(id)value
+{
+    [self.body appendData:[[NSString stringWithFormat:@"--%@\r\n", self.boundary] dataUsingEncoding:NSUTF8StringEncoding]];
+    [self.body appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"\r\n\r\n", key] dataUsingEncoding:NSUTF8StringEncoding]];
+    [self.body appendData:[[NSString stringWithFormat:@"%@\r\n", value] dataUsingEncoding:NSUTF8StringEncoding]];
+}
+
+- (void)addPartWithKey:(NSString *)key withFilename:(NSString *)filename withContentType:(NSString *)contentType withValue:(NSData *)value
+{
+    [self.body appendData:[[NSString stringWithFormat:@"--%@\r\n", self.boundary] dataUsingEncoding:NSUTF8StringEncoding]];
+    [self.body appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n", key, filename] dataUsingEncoding:NSUTF8StringEncoding]];
+    [self.body appendData:[[NSString stringWithFormat:@"Content-Type: %@\r\n\r\n", contentType] dataUsingEncoding:NSUTF8StringEncoding]];
+    if (value) {
+        [self.body appendData:value];
+    }
+    [self.body appendData:[[NSString stringWithFormat:@"\r\n"] dataUsingEncoding:NSUTF8StringEncoding]];
+}
+
+- (void)finishParts
+{
+    [self.body appendData:[[NSString stringWithFormat:@"--%@--\r\n", self.boundary] dataUsingEncoding:NSUTF8StringEncoding]];
+}
+
+@end
+
+
 @implementation NSMutableURLRequest (RequestUtils)
 
 - (void)setGETParameters:(NSDictionary *)parameters
@@ -831,4 +878,25 @@
     [self addValue:authHeader forHTTPHeaderField:@"Authorization"];
 }
 
+- (void)setMultipartFormData:(void (^)(URLRequestMultipartFormDataConstructor *constructor))constructorBlock
+{
+    NSString *boundary = [[NSProcessInfo processInfo] globallyUniqueString];
+    [self setMultipartFormDataWithBoundary:boundary constructor:constructorBlock];
+}
+
+- (void)setMultipartFormDataWithBoundary:(NSString *)boundary constructor:(void (^)(URLRequestMultipartFormDataConstructor *))constructorBlock
+{
+    NSString *contentType = [NSString stringWithFormat:@"multipart/form-data; boundary=%@", boundary];
+    [self addValue:contentType forHTTPHeaderField:@"Content-Type"];
+    
+    URLRequestMultipartFormDataConstructor *constructor = [[URLRequestMultipartFormDataConstructor alloc] initWithBoundary:boundary];
+    constructorBlock(constructor);
+    [constructor finishParts];
+    
+    NSData *body = [constructor body];
+    [self setValue:[NSString stringWithFormat:@"%u", (unsigned int)[body length]] forHTTPHeaderField:@"Content-Length"];
+    [self setHTTPBody:body];
+}
+
 @end
+
