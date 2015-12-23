@@ -268,7 +268,7 @@
     {
         queryRange.length -= (queryRange.length - fragmentStart.location);
     }
-    NSRange queryStart = [self rangeOfString:@"?"];
+    NSRange queryStart = [[self substringWithRange:queryRange] rangeOfString:@"?"];
     if (queryStart.length)
     {
         queryRange.location = queryStart.location;
