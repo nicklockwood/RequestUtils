@@ -13,6 +13,7 @@
   "requires_arc": true,
   "platforms": {
     "osx": "10.6",
-    "ios": "4.3"
+    "ios": "4.3",
+    "watchos": "2.0"
   }
 }
