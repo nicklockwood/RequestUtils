@@ -148,6 +148,16 @@ typedef NS_ENUM(NSUInteger, URLQueryOptions)
 @end
 
 
+@interface URLRequestMultipartFormDataConstructor : NSObject
+
+@property (nonatomic, strong) NSString *boundary;
+
+- (void)addPartWithKey:(NSString *)key withValue:(id)value;
+- (void)addPartWithKey:(NSString *)key withFilename:(NSString *)filename withContentType:(NSString *)contentType withValue:(NSData *)value;
+
+@end
+
+
 @interface NSMutableURLRequest (RequestUtils)
 
 - (void)setGETParameters:(NSDictionary *)parameters;
@@ -157,5 +167,7 @@ typedef NS_ENUM(NSUInteger, URLQueryOptions)
 - (void)setPOSTParameters:(NSDictionary *)parameters options:(URLQueryOptions)options;
 - (void)addPOSTParameters:(NSDictionary *)parameters options:(URLQueryOptions)options;
 - (void)setHTTPBasicAuthUser:(NSString *)user password:(NSString *)password;
+- (void)setMultipartFormData:(void (^)(URLRequestMultipartFormDataConstructor *constructor))constructorBlock;
+- (void)setMultipartFormDataWithBoundary:(NSString *)boundary constructor:(void (^)(URLRequestMultipartFormDataConstructor *constructor))constructorBlock;
 
 @end

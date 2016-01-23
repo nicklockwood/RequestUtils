@@ -63,4 +63,23 @@
 	XCTAssertEqualObjects([request POSTParameters], result, @"POSTRequest non-strings test failed");
 }
 
+- (void)testMultipartFormRequest
+{
+    NSURL *URL = [NSURL URLWithString:@"http://example.com"];
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:URL];
+    [request setMultipartFormDataWithBoundary:@"test-boundary"
+                                  constructor:^(URLRequestMultipartFormDataConstructor *constructor) {
+                                      [constructor addPartWithKey:@"foo" withValue:@"bar"];
+                                      [constructor addPartWithKey:@"foo"
+                                                     withFilename:@"bar.jpg"
+                                                  withContentType:@"image/jpeg"
+                                                        withValue:[@"bar-data" dataUsingEncoding:NSUTF8StringEncoding]];
+                                  }];
+
+    NSString *result = @"--test-boundary\r\nContent-Disposition: form-data; name=\"foo\"\r\n\r\nbar\r\n--test-boundary\r\nContent-Disposition: form-data; name=\"foo\"; filename=\"bar.jpg\"\r\nContent-Type: image/jpeg\r\n\r\nbar-data\r\n--test-boundary--\r\n";
+    XCTAssertEqualObjects([[NSString alloc] initWithData:[request HTTPBody] encoding:NSUTF8StringEncoding],
+                          result,
+                          @"MultipartFormRequest test failed");
+}
+
 @end
