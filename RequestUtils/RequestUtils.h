@@ -1,7 +1,7 @@
 //
 //  RequestUtils.h
 //
-//  Version 1.1.1
+//  Version 1.1.2
 //
 //  Created by Nick Lockwood on 11/01/2012.
 //  Copyright (C) 2012 Charcoal Design
@@ -31,6 +31,9 @@
 //
 
 #import <Foundation/Foundation.h>
+
+
+NS_ASSUME_NONNULL_BEGIN
 
 
 #ifndef REQUEST_UTILS
@@ -68,58 +71,66 @@ typedef NS_ENUM(NSUInteger, URLQueryOptions)
 
 #pragma mark URLEncoding
 
-- (NSString *)URLEncodedString;
+@property (nonatomic, readonly) NSString *URLEncodedString;
+@property (nonatomic, readonly) NSString *URLDecodedString;
+
 - (NSString *)URLDecodedString:(BOOL)decodePlusAsSpace;
 
 #pragma mark URL path extension
 
+@property (nonatomic, readonly) NSString *stringByDeletingURLPathExtension;
+@property (nonatomic, readonly) NSString *URLPathExtension;
+
 - (NSString *)stringByAppendingURLPathExtension:(NSString *)extension;
-- (NSString *)stringByDeletingURLPathExtension;
-- (NSString *)URLPathExtension;
 
 #pragma mark URL paths
 
+@property (nonatomic, readonly) NSString *stringByDeletingLastURLPathComponent;
+@property (nonatomic, readonly) NSString *lastURLPathComponent;
+
 - (NSString *)stringByAppendingURLPathComponent:(NSString *)str;
-- (NSString *)stringByDeletingLastURLPathComponent;
-- (NSString *)lastURLPathComponent;
 
 #pragma mark URL query
 
-+ (NSString *)URLQueryWithParameters:(NSDictionary *)parameters;
-+ (NSString *)URLQueryWithParameters:(NSDictionary *)parameters options:(URLQueryOptions)options;
++ (NSString *)URLQueryWithParameters:(NSDictionary<NSString *, id> *)parameters;
++ (NSString *)URLQueryWithParameters:(NSDictionary<NSString *, id> *)parameters options:(URLQueryOptions)options;
 
-- (NSString *)URLQuery;
-- (NSString *)stringByDeletingURLQuery;
+@property (nonatomic, readonly) NSString *URLQuery;
+@property (nonatomic, readonly) NSString *stringByDeletingURLQuery;
+
 - (NSString *)stringByReplacingURLQueryWithQuery:(NSString *)query;
 - (NSString *)stringByAppendingURLQuery:(NSString *)query;
 - (NSString *)stringByMergingURLQuery:(NSString *)query;
 - (NSString *)stringByMergingURLQuery:(NSString *)query options:(URLQueryOptions)options;
-- (NSDictionary *)URLQueryParameters;
-- (NSDictionary *)URLQueryParametersWithOptions:(URLQueryOptions)options;
+- (NSDictionary<NSString *, NSString *> *)URLQueryParameters;
+- (NSDictionary<NSString *, NSString *> *)URLQueryParametersWithOptions:(URLQueryOptions)options;
 
 #pragma mark URL fragment ID
 
-- (NSString *)URLFragment;
-- (NSString *)stringByDeletingURLFragment;
+@property (nonatomic, readonly) NSString *URLFragment;
+@property (nonatomic, readonly) NSString *stringByDeletingURLFragment;
+
 - (NSString *)stringByAppendingURLFragment:(NSString *)fragment;
 
 #pragma mark URL conversion
 
-- (NSURL *)URLValue;
-- (NSURL *)URLValueRelativeToURL:(NSURL *)baseURL;
+@property (nonatomic, readonly, nullable) NSURL *URLValue;
+
+- (nullable NSURL *)URLValueRelativeToURL:(nullable NSURL *)baseURL;
 
 #pragma mark base 64
 
-- (NSString *)base64EncodedString;
-- (NSString *)base64DecodedString;
+@property (nonatomic, readonly) NSString *base64EncodedString;
+@property (nonatomic, readonly) NSString *base64DecodedString;
 
 @end
 
 
 @interface NSURL (RequestUtils)
 
-+ (instancetype)URLWithComponents:(NSDictionary *)components;
-- (NSDictionary *)components;
++ (instancetype)URLWithComponents:(NSDictionary<NSString *, NSString *> *)components;
+
+@property (nonatomic, readonly) NSDictionary<NSString *, NSString *> *components;
 
 - (NSURL *)URLWithScheme:(NSString *)scheme;
 - (NSURL *)URLWithHost:(NSString *)host;
@@ -136,26 +147,30 @@ typedef NS_ENUM(NSUInteger, URLQueryOptions)
 
 @interface NSURLRequest (RequestUtils)
 
-+ (instancetype)HTTPRequestWithURL:(NSURL *)URL method:(NSString *)method parameters:(NSDictionary *)parameters;
-+ (instancetype)GETRequestWithURL:(NSURL *)URL parameters:(NSDictionary *)parameters;
-+ (instancetype)POSTRequestWithURL:(NSURL *)URL parameters:(NSDictionary *)parameters;
++ (instancetype)HTTPRequestWithURL:(NSURL *)URL method:(NSString *)method parameters:(NSDictionary<NSString *, id> *)parameters;
++ (instancetype)GETRequestWithURL:(NSURL *)URL parameters:(NSDictionary<NSString *, id> *)parameters;
++ (instancetype)POSTRequestWithURL:(NSURL *)URL parameters:(NSDictionary<NSString *, id> *)parameters;
 
-- (NSDictionary *)GETParameters;
-- (NSDictionary *)POSTParameters;
-- (NSString *)HTTPBasicAuthUser;
-- (NSString *)HTTPBasicAuthPassword;
+@property (nonatomic, readonly, nullable) NSDictionary<NSString *, NSString *> *GETParameters;
+@property (nonatomic, readonly, nullable) NSDictionary<NSString *, NSString *> *POSTParameters;
+@property (nonatomic, readonly, nullable) NSString *HTTPBasicAuthUser;
+@property (nonatomic, readonly, nullable) NSString *HTTPBasicAuthPassword;
 
 @end
 
 
 @interface NSMutableURLRequest (RequestUtils)
 
-- (void)setGETParameters:(NSDictionary *)parameters;
-- (void)setGETParameters:(NSDictionary *)parameters options:(URLQueryOptions)options;
-- (void)addGETParameters:(NSDictionary *)parameters options:(URLQueryOptions)options;
-- (void)setPOSTParameters:(NSDictionary *)parameters;
-- (void)setPOSTParameters:(NSDictionary *)parameters options:(URLQueryOptions)options;
-- (void)addPOSTParameters:(NSDictionary *)parameters options:(URLQueryOptions)options;
-- (void)setHTTPBasicAuthUser:(NSString *)user password:(NSString *)password;
+@property (nonatomic, copy, nullable) NSDictionary<NSString *, NSString *> *GETParameters;
+@property (nonatomic, copy, nullable) NSDictionary<NSString *, NSString *> *POSTParameters;
+
+- (void)setGETParameters:(NSDictionary<NSString *, id> *)parameters options:(URLQueryOptions)options;
+- (void)addGETParameters:(NSDictionary<NSString *, id> *)parameters options:(URLQueryOptions)options;
+- (void)setPOSTParameters:(NSDictionary<NSString *, id> *)parameters options:(URLQueryOptions)options;
+- (void)addPOSTParameters:(NSDictionary<NSString *, id> *)parameters options:(URLQueryOptions)options;
+- (void)setHTTPBasicAuthUser:(NSString *)user password:(nullable NSString *)password;
 
 @end
+
+
+NS_ASSUME_NONNULL_END

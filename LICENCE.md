@@ -1,6 +1,6 @@
 RequestUtils
 
-Version 1.1.1, July 24th, 2015
+Version 1.1.2, January 25th, 2016
 
 Copyright (C) 2012 Charcoal Design
 

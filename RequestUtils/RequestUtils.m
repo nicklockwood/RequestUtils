@@ -1,7 +1,7 @@
 //
 //  RequestUtils.m
 //
-//  Version 1.1.1
+//  Version 1.1.2
 //
 //  Created by Nick Lockwood on 11/01/2012.
 //  Copyright (C) 2012 Charcoal Design
@@ -60,12 +60,35 @@
 
 - (NSString *)URLEncodedString
 {
-    CFStringRef encoded = CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
-                                                                  (__bridge CFStringRef)self,
-                                                                  NULL,
-                                                                  CFSTR("!*'\"();:@&=+$,/?%#[]% "),
-                                                                  kCFStringEncodingUTF8);
-    return CFBridgingRelease(encoded);
+    static NSString *const unsafeChars = @"!*'\"();:@&=+$,/?%#[]% ";
+
+#if !(__MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_9) && !(__IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_7_0)
+
+    if (![self respondsToSelector:@selector(stringByAddingPercentEncodingWithAllowedCharacters:)])
+    {
+        CFStringRef encoded = CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
+                                                                      (__bridge CFStringRef)self,
+                                                                      NULL,
+                                                                      (__bridge CFStringRef)unsafeChars,
+                                                                      kCFStringEncodingUTF8);
+        return (__bridge_transfer NSString *)encoded;
+    }
+
+#endif
+
+    static NSCharacterSet *allowedChars;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        NSCharacterSet *disallowedChars = [NSCharacterSet characterSetWithCharactersInString:unsafeChars];
+        allowedChars = [disallowedChars invertedSet];
+    });
+
+    return (NSString *)[self stringByAddingPercentEncodingWithAllowedCharacters:allowedChars];
+}
+
+- (NSString *)URLDecodedString
+{
+    return [self URLDecodedString:NO];
 }
 
 - (NSString *)URLDecodedString:(BOOL)decodePlusAsSpace
@@ -75,26 +98,36 @@
     {
         string = [string stringByReplacingOccurrencesOfString:@"+" withString:@" "];
     }
-    return [string stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+
+#if !(__MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_9) && !(__IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_7_0)
+
+    if (![self respondsToSelector:@selector(stringByRemovingPercentEncoding)])
+    {
+        return (NSString *)[string stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    }
+
+#endif
+
+    return (NSString *)[string stringByRemovingPercentEncoding];
 }
 
 #pragma mark URL path extension
 
 - (NSString *)stringByAppendingURLPathExtension:(NSString *)extension
 {
-    NSString *lastPathComponent = [[self lastURLPathComponent] stringByAppendingPathExtension:extension];
-    return [[self stringByDeletingLastURLPathComponent] stringByAppendingURLPathComponent:lastPathComponent];
+    NSString *lastPathComponent = [self.lastURLPathComponent stringByAppendingPathExtension:extension];
+    return [self.stringByDeletingLastURLPathComponent stringByAppendingURLPathComponent:lastPathComponent];
 }
 
 - (NSString *)stringByDeletingURLPathExtension
 {
-    NSString *lastPathComponent = [[self lastURLPathComponent] stringByDeletingPathExtension];
-    return [[self stringByDeletingLastURLPathComponent] stringByAppendingURLPathComponent:lastPathComponent];
+    NSString *lastPathComponent = [self.lastURLPathComponent stringByDeletingPathExtension];
+    return [self.stringByDeletingLastURLPathComponent stringByAppendingURLPathComponent:lastPathComponent];
 }
 
 - (NSString *)URLPathExtension
 {
-    return [[self lastURLPathComponent] pathExtension];
+    return self.lastURLPathComponent.pathExtension;
 }
 
 #pragma mark URL paths
@@ -104,12 +137,12 @@
     NSString *url = self;
     
     //remove fragment
-    NSString *fragment = [url URLFragment];
-    url = [url stringByDeletingURLFragment];
+    NSString *fragment = url.URLFragment;
+    url = url.stringByDeletingURLFragment;
     
     //remove query
-    NSString *query = [url URLQuery];
-    url = [url stringByDeletingURLQuery];
+    NSString *query = url.URLQuery;
+    url = url.stringByDeletingURLQuery;
     
     //strip leading slash on path
     if ([str hasPrefix:@"/"])
@@ -118,7 +151,7 @@
     }
     
     //add trailing slash
-    if ([url length] && ![url hasSuffix:@"/"])
+    if (url.length && ![url hasSuffix:@"/"])
     {
         url = [url stringByAppendingString:@"/"];
     }
@@ -136,12 +169,12 @@
     NSString *url = self;
     
     //remove fragment
-    NSString *fragment = [url URLFragment];
-    url = [url stringByDeletingURLFragment];
+    NSString *fragment = url.URLFragment;
+    url = url.stringByDeletingURLFragment;
     
     //remove query
-    NSString *query = [url URLQuery];
-    url = [url stringByDeletingURLQuery];
+    NSString *query = url.URLQuery;
+    url = url.stringByDeletingURLQuery;
     
     //trim path
     NSRange range = [url rangeOfString:@"/" options:NSBackwardsSearch];
@@ -159,10 +192,10 @@
     NSString *url = self;
     
     //remove fragment
-    url = [url stringByDeletingURLFragment];
+    url = url.stringByDeletingURLFragment;
     
     //remove query
-    url = [url stringByDeletingURLQuery];
+    url = url.stringByDeletingURLQuery;
     
     //get last path component
     NSRange range = [url rangeOfString:@"/" options:NSBackwardsSearch];
@@ -173,12 +206,12 @@
 
 #pragma mark Query strings
 
-+ (NSString *)URLQueryWithParameters:(NSDictionary *)parameters
++ (NSString *)URLQueryWithParameters:(NSDictionary<NSString *, id> *)parameters
 {
     return [self URLQueryWithParameters:parameters options:URLQueryOptionDefault];
 }
 
-+ (NSString *)URLQueryWithParameters:(NSDictionary *)parameters options:(URLQueryOptions)options
++ (NSString *)URLQueryWithParameters:(NSDictionary<NSString *, id> *)parameters options:(URLQueryOptions)options
 {
     options = options ?: URLQueryOptionUseArrays;
     
@@ -197,62 +230,62 @@
     }
   
     NSMutableString *result = [NSMutableString string];
-    NSArray *keys = [parameters allKeys];
+    NSArray<NSString *> *keys = parameters.allKeys;
     if (sortKeys) keys = [keys sortedArrayUsingSelector:@selector(compare:)];
     for (NSString *key in keys)
     {
         id value = parameters[key];
-        NSString *encodedKey = [[key description] URLEncodedString];
+        NSString *encodedKey = key.description.URLEncodedString;
         if ([value isKindOfClass:[NSArray class]])
         {
             if (options == URLQueryOptionKeepFirstValue && [value count])
             {
-                if ([result length])
+                if (result.length)
                 {
                     [result appendString:@"&"];
                 }
-                [result appendFormat:@"%@=%@", encodedKey, [[[value firstObject] description] URLEncodedString]];
+                [result appendFormat:@"%@=%@", encodedKey, [[value firstObject] description].URLEncodedString];
             }
             else if (options == URLQueryOptionKeepLastValue && [value count])
             {
-                if ([result length])
+                if (result.length)
                 {
                     [result appendString:@"&"];
                 }
-                [result appendFormat:@"%@=%@", encodedKey, [[[value lastObject] description] URLEncodedString]];
+                [result appendFormat:@"%@=%@", encodedKey, [[value lastObject] description].URLEncodedString];
             }
             else
             {
                 for (NSString *element in value)
                 {
-                    if ([result length])
+                    if (result.length)
                     {
                         [result appendString:@"&"];
                     }
                     if (useArraySyntax)
                     {
-                        [result appendFormat:@"%@[]=%@", encodedKey, [[element description] URLEncodedString]];
+                        [result appendFormat:@"%@[]=%@", encodedKey, element.description.URLEncodedString];
                     }
                     else
                     {
-                        [result appendFormat:@"%@=%@", encodedKey, [[element description] URLEncodedString]];
+                        [result appendFormat:@"%@=%@", encodedKey, element.description.URLEncodedString];
                     }
                 }
             }
         }
         else
         {
-            if ([result length])
+            if (result.length)
             {
                 [result appendString:@"&"];
             }
             if (useArraySyntax && options == URLQueryOptionAlwaysUseArrays)
             {
-                [result appendFormat:@"%@[]=%@", encodedKey, [[value description] URLEncodedString]];
+                [result appendFormat:@"%@[]=%@", encodedKey, [value description].URLEncodedString];
             }
             else
             {
-                [result appendFormat:@"%@=%@", encodedKey, [[value description] URLEncodedString]];
+                [result appendFormat:@"%@=%@", encodedKey, [value description].URLEncodedString];
             }
         }
     }
@@ -262,7 +295,7 @@
 
 - (NSRange)rangeOfURLQuery
 {
-    NSRange queryRange = NSMakeRange(0, [self length]);
+    NSRange queryRange = NSMakeRange(0, self.length);
     NSRange fragmentStart = [self rangeOfString:@"#"];
     if (fragmentStart.length)
     {
@@ -311,31 +344,31 @@
 
 - (NSString *)stringByReplacingURLQueryWithQuery:(NSString *)query
 {
-    return [[self stringByDeletingURLQuery] stringByAppendingURLQuery:query];
+    return [self.stringByDeletingURLQuery stringByAppendingURLQuery:query];
 }
 
 - (NSString *)stringByAppendingURLQuery:(NSString *)query
 {
     //check for empty input
-    query = [query URLQuery];
+    query = query.URLQuery;
     if ([query length] == 0)
     {
         return self;
     }
     
     NSString *result = self;
-    NSString *fragment = [result URLFragment];
-    result = [self stringByDeletingURLFragment];
-    NSString *existingQuery = [result URLQuery];
-    if ([existingQuery length])
+    NSString *fragment = result.URLFragment;
+    result = self.stringByDeletingURLFragment;
+    NSString *existingQuery = result.URLQuery;
+    if (existingQuery.length)
     {
         result = [result stringByAppendingFormat:@"&%@", query];
     }
     else
     {
-        result = [[result stringByDeletingURLQuery] stringByAppendingFormat:@"?%@", query];
+        result = [result.stringByDeletingURLQuery stringByAppendingFormat:@"?%@", query];
     }
-    if ([fragment length])
+    if (fragment.length)
     {
         result = [result stringByAppendingFormat:@"#%@", fragment];
     }
@@ -353,15 +386,15 @@
     options = options ?: URLQueryOptionKeepLastValue;
     
     //check for empty input
-    query = [query URLQuery];
-    if ([query length] == 0)
+    query = query.URLQuery;
+    if (query.length == 0)
     {
         return self;
     }
     
     //check for nil query string
-    NSString *queryString = [self URLQuery];
-    if ([queryString length] == 0)
+    NSString *queryString = self.URLQuery;
+    if (queryString.length == 0)
     {
         return [self stringByAppendingURLQuery:query];
     }
@@ -409,25 +442,25 @@
     return [self stringByReplacingURLQueryWithQuery:[NSString URLQueryWithParameters:parameters options:options]];
 }
 
-- (NSDictionary *)URLQueryParameters
+- (NSDictionary<NSString *, NSString *> *)URLQueryParameters
 {
     return [self URLQueryParametersWithOptions:URLQueryOptionDefault];
 }
 
-- (NSDictionary *)URLQueryParametersWithOptions:(URLQueryOptions)options
+- (NSDictionary<NSString *, NSString *> *)URLQueryParametersWithOptions:(URLQueryOptions)options
 {
     NSParameterAssert(options <= URLQueryOptionAlwaysUseArrays);
     options = options ?: URLQueryOptionKeepLastValue;
     
-    NSString *queryString = [self URLQuery];
+    NSString *queryString = self.URLQuery;
     
     NSMutableDictionary *result = [NSMutableDictionary dictionary];
     NSArray *parameters = [queryString componentsSeparatedByString:@"&"];
     for (NSString *parameter in parameters)
     {
-        NSArray *parts = [parameter componentsSeparatedByString:@"="];
+        NSArray<NSString *> *parts = [parameter componentsSeparatedByString:@"="];
         NSString *key = [parts[0] URLDecodedString:YES];
-        if ([parts count] > 1)
+        if (parts.count > 1)
         {
             id value = [parts[1] URLDecodedString:YES];
             BOOL arrayValue = [key hasSuffix:@"[]"];
@@ -499,16 +532,16 @@
 
 #pragma mark URL conversion
 
-- (NSURL *)URLValue
+- (nullable NSURL *)URLValue
 {
-    if ([self isAbsolutePath])
+    if (self.absolutePath)
     {
         return [NSURL fileURLWithPath:self];
     }
     return [NSURL URLWithString:self];
 }
 
-- (NSURL *)URLValueRelativeToURL:(NSURL *)baseURL
+- (nullable NSURL *)URLValueRelativeToURL:(nullable NSURL *)baseURL
 {
     return [NSURL URLWithString:self relativeToURL:baseURL];
 }
@@ -523,7 +556,7 @@
     
     if (![self respondsToSelector:@selector(base64EncodedStringWithOptions:)])
     {
-        return [data base64Encoding];
+        return data.base64Encoding;
     }
     
 #endif
@@ -533,7 +566,7 @@
 
 - (NSString *)base64DecodedString
 {
-    NSData *data = nil;
+    NSData *data;
     
 #if !(__MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_9) && !(__IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_7_0)
     
@@ -557,7 +590,7 @@
 
 @implementation NSURL (RequestUtils)
 
-+ (NSURL *)URLWithComponents:(NSDictionary *)components
++ (NSURL *)URLWithComponents:(NSDictionary<NSString *, NSString *> *)components
 {
     NSString *URL = @"";
     NSString *fragment = components[URLFragmentComponent];
@@ -620,7 +653,7 @@
     return [NSURL URLWithString:URL];
 }
 
-- (NSDictionary *)components
+- (NSDictionary<NSString *, NSString *> *)components
 {
     NSMutableDictionary *result = [NSMutableDictionary dictionary];
     for (NSString *key in @[URLSchemeComponent, URLHostComponent,
@@ -640,7 +673,7 @@
 
 - (NSURL *)URLWithValue:(NSString *)value forComponent:(NSString *)component
 {
-    NSMutableDictionary *components = (NSMutableDictionary *)[self components];
+    NSMutableDictionary *components = (NSMutableDictionary *)self.components;
     if (value)
     {
         components[component] = value;
@@ -654,9 +687,9 @@
 
 - (NSURL *)URLWithScheme:(NSString *)scheme
 {
-    NSString *URL = [self absoluteString];
-    URL = [URL substringFromIndex:[[self scheme] length]];
-    return [NSURL URLWithString:[scheme stringByAppendingString:URL]];
+    NSString *URLString = self.absoluteString;
+    URLString = [URLString substringFromIndex:self.scheme.length];
+    return (NSURL *)[NSURL URLWithString:[scheme stringByAppendingString:URLString]];
 }
 
 - (NSURL *)URLWithHost:(NSString *)host
@@ -704,10 +737,10 @@
 
 @implementation NSURLRequest (RequestUtils)
 
-+ (instancetype)HTTPRequestWithURL:(NSURL *)URL method:(NSString *)method parameters:(NSDictionary *)parameters
++ (instancetype)HTTPRequestWithURL:(NSURL *)URL method:(NSString *)method parameters:(NSDictionary<NSString *, id> *)parameters
 {
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:URL];
-    method = [method uppercaseString];
+    method = method.uppercaseString;
     request.HTTPMethod = method;
     
     //set method and parameters
@@ -726,48 +759,42 @@
     return request;
 }
 
-+ (instancetype)GETRequestWithURL:(NSURL *)URL parameters:(NSDictionary *)parameters
++ (instancetype)GETRequestWithURL:(NSURL *)URL parameters:(NSDictionary<NSString *, id> *)parameters
 {
     return [self HTTPRequestWithURL:URL method:@"GET" parameters:parameters];
 }
 
-+ (instancetype)POSTRequestWithURL:(NSURL *)URL parameters:(NSDictionary *)parameters
++ (instancetype)POSTRequestWithURL:(NSURL *)URL parameters:(NSDictionary<NSString *, id> *)parameters
 {
     return [self HTTPRequestWithURL:URL method:@"POST" parameters:parameters];
 }
 
-- (NSDictionary *)GETParameters
+- (nullable NSDictionary<NSString *, NSString *> *)GETParameters
 {
-    return [[self.URL query] URLQueryParameters];
+    return self.URL.query.URLQueryParameters;
 }
 
-- (NSDictionary *)POSTParameters
+- (nullable NSDictionary<NSString *, NSString *> *)POSTParameters
 {
-    return [[self.HTTPBody RequestUtils_UTF8String] URLQueryParameters];
+    return [self.HTTPBody RequestUtils_UTF8String].URLQueryParameters;
 }
 
-- (NSArray *)HTTPBasicAuthComponents
+- (nullable NSArray<NSString *> *)HTTPBasicAuthComponents
 {
     NSString *authHeader = [self valueForHTTPHeaderField:@"Authorization"];
-    if (authHeader)
-    {
-        return [[[authHeader stringByReplacingOccurrencesOfString:@"Basic " withString:@""] base64DecodedString] componentsSeparatedByString:@":"];
-    }
-    else
-    {
-        return @[[self.URL user] ?: @"", [self.URL password] ?: @""];
-    }
+    return [[authHeader stringByReplacingOccurrencesOfString:@"Basic " withString:@""].base64DecodedString componentsSeparatedByString:@":"];
 }
 
-- (NSString *)HTTPBasicAuthUser
+- (nullable NSString *)HTTPBasicAuthUser
 {
-	return [self HTTPBasicAuthComponents][0];
+    NSString *user = [self HTTPBasicAuthComponents].firstObject;
+    return user.length? user: self.URL.user;
 }
 
-- (NSString *)HTTPBasicAuthPassword
+- (nullable NSString *)HTTPBasicAuthPassword
 {
-    NSArray *components = [self HTTPBasicAuthComponents];
-    return ([components count] == 2)? [components lastObject]: nil;
+    NSArray<NSString *> *components = [self HTTPBasicAuthComponents];
+    return components.count == 2? components.lastObject: self.URL.password;
 }
 
 @end
@@ -775,59 +802,58 @@
 
 @implementation NSMutableURLRequest (RequestUtils)
 
-- (void)setGETParameters:(NSDictionary *)parameters
+- (void)setGETParameters:(NSDictionary<NSString *, id> *)parameters
 {
     [self setGETParameters:parameters options:URLQueryOptionDefault];
 }
 
-- (void)setGETParameters:(NSDictionary *)parameters options:(URLQueryOptions)options
+- (void)setGETParameters:(NSDictionary<NSString *, id> *)parameters options:(URLQueryOptions)options
 {
     self.URL = [self.URL URLWithQuery:[NSString URLQueryWithParameters:parameters options:options]];
 }
 
-- (void)addGETParameters:(NSDictionary *)parameters options:(URLQueryOptions)options
+- (void)addGETParameters:(NSDictionary<NSString *, id> *)parameters options:(URLQueryOptions)options
 {
     NSString *query = [NSString URLQueryWithParameters:parameters options:options];
-    NSString *existingQuery = [[self.URL absoluteString] URLQuery];
-    if ([existingQuery length])
+    NSString *existingQuery = self.URL.query;
+    if (existingQuery.length)
     {
         query = [existingQuery stringByMergingURLQuery:query options:options];
     }
     self.URL = [self.URL URLWithQuery:query];
 }
 
-- (void)setPOSTParameters:(NSDictionary *)parameters
+- (void)setPOSTParameters:(NSDictionary<NSString *, id> *)parameters
 {
     [self setPOSTParameters:parameters options:URLQueryOptionDefault];
 }
-                       
-- (void)setPOSTParameters:(NSDictionary *)parameters options:(URLQueryOptions)options
+
+- (void)setPOSTParameterString:(NSString *)parameterString
 {
-    NSString *content = [NSString URLQueryWithParameters:parameters options:options];
-    NSData *data = [content dataUsingEncoding:NSUTF8StringEncoding];
-    
+    NSData *data = [parameterString dataUsingEncoding:NSUTF8StringEncoding];
     [self addValue:@"8bit" forHTTPHeaderField:@"Content-Transfer-Encoding"];
     [self addValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
-    [self addValue:[NSString stringWithFormat:@"%i", (int)[data length]] forHTTPHeaderField:@"Content-Length"];
+    [self addValue:[NSString stringWithFormat:@"%tu", data.length] forHTTPHeaderField:@"Content-Length"];
     [self setHTTPBody:data];
 }
+                       
+- (void)setPOSTParameters:(NSDictionary<NSString *, id> *)parameters options:(URLQueryOptions)options
+{
+    NSString *content = [NSString URLQueryWithParameters:parameters options:options];
+    [self setPOSTParameterString:content];
+}
 
-- (void)addPOSTParameters:(NSDictionary *)parameters options:(URLQueryOptions)options
+- (void)addPOSTParameters:(NSDictionary<NSString *, id> *)parameters options:(URLQueryOptions)options
 {
     NSString *query = [NSString URLQueryWithParameters:parameters options:options];
     NSString *content = [[self.HTTPBody RequestUtils_UTF8String] ?: @"" stringByMergingURLQuery:query options:options];
-    NSData *data = [content dataUsingEncoding:NSUTF8StringEncoding];
-    
-    [self addValue:@"8bit" forHTTPHeaderField:@"Content-Transfer-Encoding"];
-    [self addValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
-    [self addValue:[NSString stringWithFormat:@"%i", (int)[data length]] forHTTPHeaderField:@"Content-Length"];
-    [self setHTTPBody:data];
+    [self setPOSTParameterString:content];
 }
 
-- (void)setHTTPBasicAuthUser:(NSString *)user password:(NSString *)password
+- (void)setHTTPBasicAuthUser:(NSString *)user password:(nullable NSString *)password
 {
-    NSString *authHeader = [NSString stringWithFormat:@"%@:%@", (user ?: @""), (password ?: @"")];
-    authHeader = [NSString stringWithFormat:@"Basic %@", [authHeader base64EncodedString]];
+    NSString *authHeader = [NSString stringWithFormat:@"%@:%@", user ?: @"", password ?: @""];
+    authHeader = [NSString stringWithFormat:@"Basic %@", authHeader.base64EncodedString];
     [self addValue:authHeader forHTTPHeaderField:@"Authorization"];
 }
 

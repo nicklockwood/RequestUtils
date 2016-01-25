@@ -10,8 +10,8 @@ RequestUtils is a collection of category methods designed to simplify the proces
 Supported OS & SDK Versions
 -----------------------------
 
-* Supported build target - iOS 8.4 / Mac OS 10.10 (Xcode 6.4, Apple LLVM compiler 6.1)
-* Earliest supported deployment target - iOS 7.1 / Mac OS 10.9
+* Supported build target - iOS 9.2 / Mac OS 10.11 (Xcode 7.2, Apple LLVM compiler 7.1)
+* Earliest supported deployment target - iOS 7.1 / Mac OS 10.10
 * Earliest compatible deployment target - iOS 4.3 / Mac OS 10.6.8
 
 NOTE: 'Supported' means that the library has been tested with this version. 'Compatible' means that the library should work on this iOS version (i.e. it doesn't rely on any unavailable SDK features) but is no longer being tested for compatibility and may require tweaking or bug fixes to run correctly.
@@ -42,7 +42,7 @@ NSString Extensions
 
 RequestUtils extends NSString with the following methods:
 
-	- (NSString *)URLEncodedString;
+	@property(nonatomic, readonly) NSString *URLEncodedString;
 	
 This is a method to URL-encode a string so that it may be safely used within a URL path or query parameter. This method is different from the standard `stringByAddingPercentEscapesUsingEncoding:` method because that only ensures that the string does not contain characters that are invalid for use in a string, but it doesn't encode characters that are valid to use in a url (e.g. "?", "&") but which cannot be used inside a query string parameter or path component without affecting the URL structure.
 
@@ -54,11 +54,11 @@ This reverses the effects of `URLEncodedString` by replacing all percent escape 
     
 NSString has a useful method `stringByAppendingPathExtension:` which can be used to add a path extension to the end of the string, correctly separated by a dot. Unfortunately the `stringByAppendingPathExtension:` method is not URL-aware, and incorrectly strips the double `//` from URLs when a path is appended. `stringByAppendingURLPathExtension:` is much smarter, and not only avoids stripping the `//` from the URL schema, but will also correctly insert the path extension *before* the URL query or fragment string.
     
-    - (NSString *)stringByDeletingURLPathExtension;
+    @property(nonatomic, readonly) NSString *stringByDeletingURLPathExtension;
     
 This is a URL-aware version of the `stringByDeletingURLPathExtension` method. It will remove the last component of the path without disrupting the query or fragment strings, or mangling `//` (if present).
     
-    - (NSString *)URLPathExtension;
+    @property(nonatomic, readonly) NSString *URLPathExtension;
 	
 This is a URL-aware version of the `pathExtension` method. It will return the path file extension without including the query or fragment strings (if present).
 	
@@ -66,11 +66,11 @@ This is a URL-aware version of the `pathExtension` method. It will return the pa
     
 NSString has a useful method `stringByAppendingPathComponent:` which can be used to add path components to the end of the string whilst correctly adding a dividing `/` and avoiding double `/` if one or both path components already include it. Unfortunately the `stringByAppendingPathComponent:` method is not URL-aware, and incorrectly strips the double `//` from URLs when a path is appended. `stringByAppendingURLPathComponent:` is much smarter, and not only avoids stripping the `//` from the URL schema, but will also correctly insert the path component *before* the URL query or fragment string.
     
-    - (NSString *)stringByDeletingLastURLPathComponent;
+    @property(nonatomic, readonly) NSString *stringByDeletingLastURLPathComponent;
     
 This is a URL-aware version of the `stringByDeletingLastPathComponent` method. It will remove the last component of the path without disrupting the query or fragment strings, or mangling `//` (if present).
     
-    - (NSString *)lastURLPathComponent;
+    @property(nonatomic, readonly) NSString *lastURLPathComponent;
     
 This is a URL-aware version of the `lastPathComponent` method. It will return the last component of the path without including the query or fragment strings (if present).
 	
@@ -82,11 +82,11 @@ This method generates a URL query string from a dictionary of keys and values. T
 	
 This method generates a URL query string from a dictionary of keys and values, but provides an additional `options` argument to control how parameter arrays are handled. All keys and values in the dictionary will be automatically URL encoded. See `URLQueryOptions` below for discussion of the options.
 	
-	- (NSString *)URLQuery;
+	@property(nonatomic, readonly) NSString *URLQuery;
 	
 This method attempts to find and return a URL query string within the string. It is similar to the `query` method of NSURL, but works better with partial URLs/URIs or URLs with non-standard structures, e.g. bespoke schemas.
 	
-	- (NSString *)stringByDeletingURLQuery;
+	@property(nonatomic, readonly) NSString *stringByDeletingURLQuery;
 	
 This method finds and removes the URL query from the string. It is URL fragment/hash aware and will leave the URL fragment untouched if present.
 	
@@ -106,7 +106,7 @@ This method will append a URL query to the string, merging any duplicate values.
 	
 This method will append a URL query to the string, merging any duplicate values. By default, duplicate query parameters will be replaced by the last value encountered for that key, but you can override that behaviour using the `options` argument. See `URLQueryOptions` below for discussion of the options.
 	
-	- (NSDictionary *)URLQueryParameters;
+	@property(nonatomic, readonly) NSDictionary *URLQueryParameters;
 	
 This method attempts to locate a query string within the string and then splits it into a dictionary of key/value pairs. Each key and value will be URL decoded. If duplicate parameter keys are encountered, the last value encountered for that key is used. To override this behaviour, use `URLQueryParametersWithOptions:` instead.
 
@@ -114,11 +114,11 @@ This method attempts to locate a query string within the string and then splits 
 	
 This method attempts to locate a query string within the string and then splits it into a dictionary of key/value pairs. Each key and value will be URL decoded. The `options` argument controls how duplicate parameters should be handled. See `URLQueryOptions` below for discussion of the options.
 		
-	- (NSString *)URLFragment;
+	@property(nonatomic, readonly) NSString *URLFragment;
 	
 This method returns the URL fragment identifier or hash part of the string. It is similar to the `fragment` method of NSURL, but works better with partial URLs/URIs or URLs with non-standard structures, e.g. bespoke schemas.
 	
-	- (NSString *)stringByDeletingURLFragment;
+	@property(nonatomic, readonly) NSString *stringByDeletingURLFragment;
 	
 This method finds and removes the URL fragment identifier from the string (if present).
 	
@@ -126,7 +126,7 @@ This method finds and removes the URL fragment identifier from the string (if pr
 		
 This method will append a URL fragment identifier to the string. It will also correctly concatenate the string to an existing fragment identifier if present. No attempt is made to analyse the structure of the fragment, or handle path concatenation correctly within the fragment string. If you need to do that, generate the fragment separately and then set it in one go.
 
-	- (NSURL *)URLValue;
+	@property(nonatomic, readonly) NSURL *URLValue;
 	
 This method converts the string to a URL. It is similar to using `[NSURL URLWithString:]`, but with a couple of benefits: 1) It doesn't throw an exception if the string is nil, and 2) It automatically detects if the string is a file path and uses `[NSURL fileURLWithString:]` instead of `[NSURL URLWithString:]`, thereby eliminating a common source of bugs.
 	
@@ -134,11 +134,11 @@ This method converts the string to a URL. It is similar to using `[NSURL URLWith
 	
 This method converts the string to a URL. It is similar to using `[NSURL URLWithString:relativeToURL]`, but won't throw an exception if the string is nil.
     
-    - (NSString *)base64EncodedString;
+    @property(nonatomic, readonly) NSString *base64EncodedString;
     
 Encodes the string as UTF8 data and then encodes that as a base-64-encoded string without any wrapping (line breaks). For more advanced base 64 encoding options, check out my Base64 library (https://github.com/nicklockwood/Base64).
     
-    - (NSString *)base64DecodedString;
+    @property(nonatomic, readonly) NSString *base64DecodedString;
     
 Treats the string as a base-64-encoded string and returns an autoreleased NSString object containing the decoded data, interpreted using UTF8 encoding. Any non-base-64 characters in the string are ignored, so it is safe to use a string containing line breaks or other delimiters. For more advanced base 64 decoding options, check out my Base64 library (https://github.com/nicklockwood/Base64).
 
@@ -152,7 +152,7 @@ RequestUtils extends NSURL with the following methods:
 	
 This builds a URL from the supplied dictionary of components. The dictionary may contain any or all of the following: scheme, host, port, user, password, path, parameterString, query, fragment (there are a set of constants defined for all of these values). All values are optional and the method will attempt to build as much of the URL as possible given the values supplied. All values supplied should be NSStrings, with the exception of the URLQueryComponent, which can be either an NSString or an NSDictionary of query parameters.
 	
-	- (NSDictionary *)components;
+	@property(nonatomic, readonly) NSDictionary *components;
 	
 Returns a dictionary of URL components containing any or all of the following: scheme, host, port, user, password, path, parameterString, query, fragment.
 	
@@ -210,19 +210,19 @@ Creates a new, autoreleased NSURLRequest using the GET method and the specified 
     
 Creates a new, autoreleased NSURLRequest using the POST method and the specified URL and parameters. The parameters are URL encoded and set as the body of the request.
     
-    - (NSDictionary *)GETParameters;
+    @property(nonatomic, readonly) NSDictionary *GETParameters;
     
 Returns the GET (query string) parameters of the request as a dictionary.
     
-    - (NSDictionary *)POSTParameters;
+    @property(nonatomic, readonly) NSDictionary *POSTParameters;
     
 Returns the POST (request body) parameters of the request as a dictionary.
 
-    - (NSString *)HTTPBasicAuthUser;
+    @property(nonatomic, readonly) NSString *HTTPBasicAuthUser;
     
 Returns the HTTP basic auth user. If the request has an `Authorization` header then that will be used to get the user, otherwise if there is a user specified in the URL itself, that will be used instead.
     
-    - (NSString *)HTTPBasicAuthPassword;
+    @property(nonatomic, readonly) NSString *HTTPBasicAuthPassword;
     
 Returns the HTTP basic auth password. If the request has an `Authorization` header then that will be used to get the password, otherwise if there is a password specified in the URL itself, that will be used instead.
     
@@ -232,7 +232,8 @@ NSMutableURLRequest Extensions
 
 RequestUtils extends NSMutableURLRequest with the following methods:
 
-    - (void)setGETParameters:(NSDictionary *)parameters;
+    @property(nonatomic, copy) NSDictionary *GETParameters;
+    
     - (void)setGETParameters:(NSDictionary *)parameters options:(URLQueryOptions)options
     
 This method sets the GET parameters of the request using a dictionary. The Parameters are URL encoded and set as the query string of the request URL. Any existing query string parameters will be replaced by the new values. The optional options argument allows you to control how the query parameters are serialised (see the URLQueryOptions section below for details).
@@ -241,7 +242,8 @@ This method sets the GET parameters of the request using a dictionary. The Param
 
 This method works like the `setGETParameters:` method except that the parameters are merged with the existing request parameters instead of replacing them. The rules by which the merging occurs are controlled by the options argument (see the URLQueryOptions section below for details).
     
-    - (void)setPOSTParameters:(NSDictionary *)parameters;
+    @property(nonatomic, copy) NSDictionary *POSTParameters;
+    
     - (void)setPOSTParameters:(NSDictionary *)parameters options:(URLQueryOptions)options
     
 This method sets the POST parameters of the request using a dictionary. The parameters are URL encoded and set as the body of the request. Any existing request body contents will be replaced. The optional options argument allows you to control how the POST parameters are serialised (see the URLQueryOptions section below for details).
@@ -300,10 +302,18 @@ Use of the "[]" key suffix is not an official part of the RFC 1808 URL specifica
     
     URLQueryOptionSortKeys
  
-The URLQueryOptionSortKeys option can be combined with any of the previous options. It is used when generating a query string to ensure that the keys in the resultant string will be outputed in a consistent order (alphabetical). This can be useful when performing unit tests, or cryptographic hashes on the resultant string, where you need to be able to depend on the order remaining consistent.
+The URLQueryOptionSortKeys option can be combined with any of the previous options. It is used when generating a query string to ensure that the keys in the resultant string will be outputted in a consistent order (alphabetical). This can be useful when performing unit tests, or cryptographic hashes on the resultant string, where you need to be able to depend on the order remaining consistent.
 
 Release Notes
 ---------------
+
+Version 1.1.2
+
+- Added nullability annotations
+- Added lightweight generics annotations
+- Converted getters to readonly properties
+- Fixed deprecation warnings in iOS9
+- Added watchOS and tvOS to Podspec
  
 Version 1.1.1
 
