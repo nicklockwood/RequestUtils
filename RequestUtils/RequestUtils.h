@@ -158,6 +158,9 @@ typedef NS_ENUM(NSUInteger, URLQueryOptions)
 + (instancetype)HTTPRequestWithURL:(NSURL *)URL method:(NSString *)method parameters:(NSDictionary<NSString *, id> *)parameters;
 + (instancetype)GETRequestWithURL:(NSURL *)URL parameters:(NSDictionary<NSString *, id> *)parameters;
 + (instancetype)POSTRequestWithURL:(NSURL *)URL parameters:(NSDictionary<NSString *, id> *)parameters;
++ (instancetype)HTTPRequestWithString:(NSString *)URL method:(NSString *)method parameters:(NSDictionary<NSString *, id> *)parameters;
++ (instancetype)GETRequestWithString:(NSString *)URL parameters:(NSDictionary<NSString *, id> *)parameters;
++ (instancetype)POSTRequestWithString:(NSString *)URL parameters:(NSDictionary<NSString *, id> *)parameters;
 
 @property (nonatomic, readonly, nullable) NSDictionary<NSString *, NSString *> *GETParameters;
 @property (nonatomic, readonly, nullable) NSDictionary<NSString *, NSString *> *POSTParameters;

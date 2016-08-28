@@ -804,6 +804,19 @@
 {
     return [self HTTPRequestWithURL:URL method:@"POST" parameters:parameters];
 }
++ (instancetype)HTTPRequestWithString:(NSString *)URL method:(NSString *)method parameters:(NSDictionary<NSString *, id> *)parameters{
+    NSURL * convertedURL = URL.URLValue;
+    if (!convertedURL) {
+        return nil;
+    }
+    return [self HTTPRequestWithURL:convertedURL method:method parameters:parameters];
+}
++ (instancetype)GETRequestWithString:(NSString *)URL parameters:(NSDictionary<NSString *, id> *)parameters{
+    return [self HTTPRequestWithString:URL method:@"GET" parameters:parameters];
+}
++ (instancetype)POSTRequestWithString:(NSString *)URL parameters:(NSDictionary<NSString *, id> *)parameters{
+    return [self HTTPRequestWithString:URL method:@"POST" parameters:parameters];
+}
 
 - (nullable NSDictionary<NSString *, NSString *> *)GETParameters
 {
