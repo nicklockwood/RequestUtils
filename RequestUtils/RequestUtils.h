@@ -71,6 +71,14 @@ typedef NS_ENUM(NSUInteger, URLQueryOptions)
 
 #pragma mark URLEncoding
 
+#if (__MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_9) || (__IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_7_0)
+@property (nullable, nonatomic, readonly) NSString *URLQueryEncodedString;
+@property (nullable, nonatomic, readonly) NSString *URLPathEncodedString;
+@property (nullable, nonatomic, readonly) NSString *URLHostEncodedString;
+@property (nullable, nonatomic, readonly) NSString *URLUserEncodedString;
+@property (nullable, nonatomic, readonly) NSString *URLPasswordEncodedString;
+@property (nullable, nonatomic, readonly) NSString *URLFragmentEncodedString;
+#endif
 @property (nonatomic, readonly) NSString *URLEncodedString;
 @property (nonatomic, readonly) NSString *URLDecodedString;
 
@@ -144,12 +152,20 @@ typedef NS_ENUM(NSUInteger, URLQueryOptions)
 
 @end
 
+@interface NSDictionary(RequestUtils)
+- (NSArray <NSURLQueryItem *>*) URLQueryItems;
+- (NSURLComponents *) urlComponentsWithBaseURLString:(NSString *)baseURL;
+@end
+
 
 @interface NSURLRequest (RequestUtils)
 
 + (instancetype)HTTPRequestWithURL:(NSURL *)URL method:(NSString *)method parameters:(NSDictionary<NSString *, id> *)parameters;
 + (instancetype)GETRequestWithURL:(NSURL *)URL parameters:(NSDictionary<NSString *, id> *)parameters;
 + (instancetype)POSTRequestWithURL:(NSURL *)URL parameters:(NSDictionary<NSString *, id> *)parameters;
++ (instancetype)HTTPRequestWithString:(NSString *)URL method:(NSString *)method parameters:(NSDictionary<NSString *, id> *)parameters;
++ (instancetype)GETRequestWithString:(NSString *)URL parameters:(NSDictionary<NSString *, id> *)parameters;
++ (instancetype)POSTRequestWithString:(NSString *)URL parameters:(NSDictionary<NSString *, id> *)parameters;
 
 @property (nonatomic, readonly, nullable) NSDictionary<NSString *, NSString *> *GETParameters;
 @property (nonatomic, readonly, nullable) NSDictionary<NSString *, NSString *> *POSTParameters;

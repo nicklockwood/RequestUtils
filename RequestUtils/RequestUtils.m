@@ -58,6 +58,42 @@
 
 #pragma mark URLEncoding
 
+- (NSString *)URLQueryEncodedString{
+#if !(__MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_9) && !(__IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_7_0)
+    return [self URLEncodedString];
+#endif
+    return [self stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
+}
+- (NSString *)URLPathEncodedString{
+#if !(__MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_9) && !(__IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_7_0)
+    return [self URLEncodedString];
+#endif
+    return [self stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLPathAllowedCharacterSet]];
+}
+- (NSString *)URLHostEncodedString{
+#if !(__MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_9) && !(__IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_7_0)
+    return [self URLEncodedString];
+#endif
+    return [self stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLHostAllowedCharacterSet]];
+}
+- (NSString *)URLUserEncodedString{
+#if !(__MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_9) && !(__IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_7_0)
+    return [self URLEncodedString];
+#endif
+    return [self stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLUserAllowedCharacterSet]];
+}
+- (NSString *)URLPasswordEncodedString{
+#if !(__MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_9) && !(__IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_7_0)
+    return [self URLEncodedString];
+#endif
+    return [self stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLPasswordAllowedCharacterSet]];
+}
+- (NSString *)URLFragmentEncodedString{
+#if !(__MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_9) && !(__IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_7_0)
+    return [self URLEncodedString];
+#endif
+    return [self stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLFragmentAllowedCharacterSet]];
+}
 - (NSString *)URLEncodedString
 {
     static NSString *const unsafeChars = @"!*'\"();:@&=+$,/?%#[]% ";
@@ -734,6 +770,23 @@
 
 @end
 
+@implementation NSDictionary(RequestUtils)
+- (NSArray <NSURLQueryItem *>*) URLQueryItems{
+    NSMutableArray * arrItems = [NSMutableArray arrayWithCapacity:self.allKeys.count];
+    [self enumerateKeysAndObjectsUsingBlock:^(id  _Nonnull key, id  _Nonnull obj, BOOL * _Nonnull stop) {
+#pragma unused(stop)
+        NSURLQueryItem * queryItem = [NSURLQueryItem queryItemWithName:key value:obj];
+        [arrItems addObject:queryItem];
+    }];
+    return arrItems;
+}
+- (NSURLComponents *) urlComponentsWithBaseURLString:(NSString *)baseURL{
+    NSURLComponents * components = [NSURLComponents componentsWithString:baseURL];
+    components.queryItems = [self URLQueryItems];
+    return components;
+}
+@end
+
 
 @implementation NSURLRequest (RequestUtils)
 
@@ -767,6 +820,19 @@
 + (instancetype)POSTRequestWithURL:(NSURL *)URL parameters:(NSDictionary<NSString *, id> *)parameters
 {
     return [self HTTPRequestWithURL:URL method:@"POST" parameters:parameters];
+}
++ (instancetype)HTTPRequestWithString:(NSString *)URL method:(NSString *)method parameters:(NSDictionary<NSString *, id> *)parameters{
+    NSURL * convertedURL = URL.URLValue;
+    if (!convertedURL) {
+        return nil;
+    }
+    return [self HTTPRequestWithURL:convertedURL method:method parameters:parameters];
+}
++ (instancetype)GETRequestWithString:(NSString *)URL parameters:(NSDictionary<NSString *, id> *)parameters{
+    return [self HTTPRequestWithString:URL method:@"GET" parameters:parameters];
+}
++ (instancetype)POSTRequestWithString:(NSString *)URL parameters:(NSDictionary<NSString *, id> *)parameters{
+    return [self HTTPRequestWithString:URL method:@"POST" parameters:parameters];
 }
 
 - (nullable NSDictionary<NSString *, NSString *> *)GETParameters
