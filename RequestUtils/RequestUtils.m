@@ -770,6 +770,23 @@
 
 @end
 
+@implementation NSDictionary(RequestUtils)
+- (NSArray <NSURLQueryItem *>*) URLQueryItems{
+    NSMutableArray * arrItems = [NSMutableArray arrayWithCapacity:self.allKeys.count];
+    [self enumerateKeysAndObjectsUsingBlock:^(id  _Nonnull key, id  _Nonnull obj, BOOL * _Nonnull stop) {
+#pragma unused(stop)
+        NSURLQueryItem * queryItem = [NSURLQueryItem queryItemWithName:key value:obj];
+        [arrItems addObject:queryItem];
+    }];
+    return arrItems;
+}
+- (NSURLComponents *) urlComponentsWithBaseURLString:(NSString *)baseURL{
+    NSURLComponents * components = [NSURLComponents componentsWithString:baseURL];
+    components.queryItems = [self URLQueryItems];
+    return components;
+}
+@end
+
 
 @implementation NSURLRequest (RequestUtils)
 

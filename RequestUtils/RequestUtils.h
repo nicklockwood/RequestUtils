@@ -152,6 +152,11 @@ typedef NS_ENUM(NSUInteger, URLQueryOptions)
 
 @end
 
+@interface NSDictionary(RequestUtils)
+- (NSArray <NSURLQueryItem *>*) URLQueryItems;
+- (NSURLComponents *) urlComponentsWithBaseURLString:(NSString *)baseURL;
+@end
+
 
 @interface NSURLRequest (RequestUtils)
 
